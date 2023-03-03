@@ -1,0 +1,25 @@
+Worktype: 
+
+----
+
+Imagetype: Detail
+
+----
+
+Materials: Fabric, Wire, String, MDF
+
+----
+
+Collaborators: 
+
+----
+
+Filetype: img
+
+----
+
+Keywords: Process
+
+----
+
+Sort: 4

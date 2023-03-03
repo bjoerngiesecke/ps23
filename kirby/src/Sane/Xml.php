@@ -24,6 +24,7 @@ class Xml extends DomHandler
 	 * Custom callback for additional element sanitization
 	 * @internal
 	 *
+	 * @param \DOMElement $element
 	 * @return array Array with exception objects for each modification
 	 */
 	public static function sanitizeElement(DOMElement $element): array
@@ -53,6 +54,9 @@ class Xml extends DomHandler
 	/**
 	 * Custom callback for additional doctype validation
 	 * @internal
+	 *
+	 * @param \DOMDocumentType $doctype
+	 * @return void
 	 */
 	public static function validateDoctype(DOMDocumentType $doctype): void
 	{

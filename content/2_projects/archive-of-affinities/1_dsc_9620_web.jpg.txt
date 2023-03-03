@@ -1,0 +1,25 @@
+Worktype: 
+
+----
+
+Imagetype: 
+
+----
+
+Materials: Wood, Tarpaulin, Food Packaging, Spoiled Food, String, Hose
+
+----
+
+Collaborators: Preston Mila
+
+----
+
+Filetype: img
+
+----
+
+Keywords: Process, Set
+
+----
+
+Sort: 9

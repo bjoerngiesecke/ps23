@@ -1,0 +1,25 @@
+Worktype: 
+
+----
+
+Imagetype: Detail
+
+----
+
+Materials: Plywood, Aluminium
+
+----
+
+Collaborators: 
+
+----
+
+Filetype: img
+
+----
+
+Keywords: 
+
+----
+
+Sort: 1

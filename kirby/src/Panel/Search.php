@@ -2,8 +2,6 @@
 
 namespace Kirby\Panel;
 
-use Kirby\Http\Response;
-
 /**
  * The Search response class handles Fiber
  * requests to render the JSON object for
@@ -18,9 +16,14 @@ use Kirby\Http\Response;
  */
 class Search extends Json
 {
-	protected static string $key = '$search';
+	protected static $key = '$search';
 
-	public static function response($data, array $options = []): Response
+	/**
+	 * @param mixed $data
+	 * @param array $options
+	 * @return \Kirby\Http\Response
+	 */
+	public static function response($data, array $options = [])
 	{
 		if (is_array($data) === true) {
 			$data = [

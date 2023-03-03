@@ -67,7 +67,7 @@ return [
 
 			foreach (Data::decode($value, 'yaml') as $id) {
 				if (is_array($id) === true) {
-					$id =  $id['uuid'] ?? $id['id'] ?? null;
+					$id = $id['id'] ?? null;
 				}
 
 				if ($id !== null && ($page = $kirby->page($id))) {
@@ -102,7 +102,7 @@ return [
 		];
 	},
 	'save' => function ($value = null) {
-		return A::pluck($value, $this->store);
+		return A::pluck($value, 'id');
 	},
 	'validations' => [
 		'max',

@@ -1,0 +1,25 @@
+Worktype: 
+
+----
+
+Imagetype: 
+
+----
+
+Materials: Aluminium, Plywood
+
+----
+
+Collaborators: 
+
+----
+
+Filetype: img
+
+----
+
+Keywords: Process, Fabrication
+
+----
+
+Sort: 7

@@ -5,7 +5,6 @@ namespace Kirby\Panel;
 use Kirby\Cms\App;
 use Kirby\Cms\Find;
 use Kirby\Exception\LogicException;
-use Kirby\Http\Response;
 use Kirby\Http\Uri;
 use Kirby\Toolkit\Str;
 use Throwable;
@@ -24,10 +23,12 @@ use Throwable;
  */
 class Dropdown extends Json
 {
-	protected static string $key = '$dropdown';
+	protected static $key = '$dropdown';
 
 	/**
 	 * Returns the options for the changes dropdown
+	 *
+	 * @return array
 	 */
 	public static function changes(): array
 	{
@@ -53,7 +54,7 @@ class Dropdown extends Json
 				}
 
 				$options[] = $option;
-			} catch (Throwable) {
+			} catch (Throwable $e) {
 				continue;
 			}
 		}
@@ -71,8 +72,12 @@ class Dropdown extends Json
 
 	/**
 	 * Renders dropdowns
+	 *
+	 * @param mixed $data
+	 * @param array $options
+	 * @return \Kirby\Http\Response
 	 */
-	public static function response($data, array $options = []): Response
+	public static function response($data, array $options = [])
 	{
 		if (is_array($data) === true) {
 			$data = [

@@ -2,15 +2,10 @@
 
 namespace Kirby\Cms;
 
-use Composer\InstalledVersions;
 use Exception;
-use Kirby\Cms\System\UpdateStatus;
 use Kirby\Data\Data;
 use Kirby\Exception\InvalidArgumentException;
-use Kirby\Toolkit\A;
-use Kirby\Toolkit\Str;
 use Kirby\Toolkit\V;
-use Throwable;
 
 /**
  * Represents a Plugin and handles parsing of
@@ -25,16 +20,15 @@ use Throwable;
  */
 class Plugin extends Model
 {
-	protected array $extends;
-	protected string $name;
-	protected string $root;
-
-	// caches
-	protected array|null $info = null;
-	protected UpdateStatus|null $updateStatus = null;
+	protected $extends;
+	protected $info;
+	protected $name;
+	protected $root;
 
 	/**
-	 * Allows access to any composer.json field by method call
+	 * @param string $key
+	 * @param array|null $arguments
+	 * @return mixed|null
 	 */
 	public function __call(string $key, array $arguments = null)
 	{
@@ -42,8 +36,10 @@ class Plugin extends Model
 	}
 
 	/**
-	 * @param string $name Plugin name within Kirby (`vendor/plugin`)
-	 * @param array $extends Associative array of plugin extensions
+	 * Plugin constructor
+	 *
+	 * @param string $name
+	 * @param array $extends
 	 */
 	public function __construct(string $name, array $extends = [])
 	{
@@ -57,7 +53,9 @@ class Plugin extends Model
 
 	/**
 	 * Returns the array with author information
-	 * from the composer.json file
+	 * from the composer file
+	 *
+	 * @return array
 	 */
 	public function authors(): array
 	{
@@ -66,6 +64,8 @@ class Plugin extends Model
 
 	/**
 	 * Returns a comma-separated list with all author names
+	 *
+	 * @return string
 	 */
 	public function authorsNames(): string
 	{
@@ -79,7 +79,7 @@ class Plugin extends Model
 	}
 
 	/**
-	 * Returns the associative array of extensions the plugin bundles
+	 * @return array
 	 */
 	public function extends(): array
 	{
@@ -87,8 +87,9 @@ class Plugin extends Model
 	}
 
 	/**
-	 * Returns the unique ID for the plugin
-	 * (alias for the plugin name)
+	 * Returns the unique id for the plugin
+	 *
+	 * @return string
 	 */
 	public function id(): string
 	{
@@ -96,7 +97,7 @@ class Plugin extends Model
 	}
 
 	/**
-	 * Returns the raw data from composer.json
+	 * @return array
 	 */
 	public function info(): array
 	{
@@ -106,7 +107,7 @@ class Plugin extends Model
 
 		try {
 			$info = Data::read($this->manifest());
-		} catch (Exception) {
+		} catch (Exception $e) {
 			// there is no manifest file or it is invalid
 			$info = [];
 		}
@@ -116,8 +117,10 @@ class Plugin extends Model
 
 	/**
 	 * Returns the link to the plugin homepage
+	 *
+	 * @return string|null
 	 */
-	public function link(): string|null
+	public function link(): ?string
 	{
 		$info     = $this->info();
 		$homepage = $info['homepage'] ?? null;
@@ -130,7 +133,7 @@ class Plugin extends Model
 	}
 
 	/**
-	 * Returns the path to the plugin's composer.json
+	 * @return string
 	 */
 	public function manifest(): string
 	{
@@ -138,7 +141,7 @@ class Plugin extends Model
 	}
 
 	/**
-	 * Returns the root where plugin assets are copied to
+	 * @return string
 	 */
 	public function mediaRoot(): string
 	{
@@ -146,7 +149,7 @@ class Plugin extends Model
 	}
 
 	/**
-	 * Returns the base URL for plugin assets
+	 * @return string
 	 */
 	public function mediaUrl(): string
 	{
@@ -154,7 +157,7 @@ class Plugin extends Model
 	}
 
 	/**
-	 * Returns the plugin name (`vendor/plugin`)
+	 * @return string
 	 */
 	public function name(): string
 	{
@@ -162,7 +165,8 @@ class Plugin extends Model
 	}
 
 	/**
-	 * Returns a Kirby option value for this plugin
+	 * @param string $key
+	 * @return mixed
 	 */
 	public function option(string $key)
 	{
@@ -170,7 +174,7 @@ class Plugin extends Model
 	}
 
 	/**
-	 * Returns the option prefix (`vendor.plugin`)
+	 * @return string
 	 */
 	public function prefix(): string
 	{
@@ -178,7 +182,7 @@ class Plugin extends Model
 	}
 
 	/**
-	 * Returns the root where the plugin files are stored
+	 * @return string
 	 */
 	public function root(): string
 	{
@@ -186,13 +190,11 @@ class Plugin extends Model
 	}
 
 	/**
-	 * Validates and sets the plugin name
-	 *
+	 * @param string $name
 	 * @return $this
-	 *
-	 * @throws \Kirby\Exception\InvalidArgumentException If the plugin name has an invalid format
+	 * @throws \Kirby\Exception\InvalidArgumentException
 	 */
-	protected function setName(string $name): static
+	protected function setName(string $name)
 	{
 		if (preg_match('!^[a-z0-9-]+\/[a-z0-9-]+$!i', $name) !== 1) {
 			throw new InvalidArgumentException('The plugin name must follow the format "a-z0-9-/a-z0-9-"');
@@ -203,7 +205,7 @@ class Plugin extends Model
 	}
 
 	/**
-	 * Returns all available plugin metadata
+	 * @return array
 	 */
 	public function toArray(): array
 	{
@@ -216,87 +218,5 @@ class Plugin extends Model
 			'root'        => $this->root(),
 			'version'     => $this->version()
 		];
-	}
-
-	/**
-	 * Returns the update status object unless the
-	 * update check has been disabled for the plugin
-	 * @since 3.8.0
-	 *
-	 * @param array|null $data Custom override for the getkirby.com update data
-	 */
-	public function updateStatus(array|null $data = null): UpdateStatus|null
-	{
-		if ($this->updateStatus !== null) {
-			return $this->updateStatus;
-		}
-
-		$kirby  = $this->kirby();
-		$option = $kirby->option('updates.plugins');
-
-		// specific configuration per plugin
-		if (is_array($option) === true) {
-			// filter all option values by glob match
-			$option = A::filter(
-				$option,
-				fn ($value, $key) => fnmatch($key, $this->name()) === true
-			);
-
-			// sort the matches by key length (with longest key first)
-			$keys = array_map('strlen', array_keys($option));
-			array_multisort($keys, SORT_DESC, $option);
-
-			if (count($option) > 0) {
-				// use the first and therefore longest key (= most specific match)
-				$option = reset($option);
-			} else {
-				// fallback to the default option value
-				$option = true;
-			}
-		}
-
-		$option ??= $kirby->option('updates') ?? true;
-
-		if ($option !== true) {
-			return null;
-		}
-
-		return $this->updateStatus = new UpdateStatus($this, false, $data);
-	}
-
-	/**
-	 * Returns the normalized version number
-	 * from the composer.json file
-	 */
-	public function version(): string|null
-	{
-		$composerName = $this->info()['name'] ?? null;
-		$version      = $this->info()['version'] ?? null;
-
-		try {
-			// if plugin doesn't have version key in composer.json file
-			// try to get version from "vendor/composer/installed.php"
-			$version ??= InstalledVersions::getPrettyVersion($composerName);
-		} catch (Throwable) {
-			return null;
-		}
-
-		if (
-			is_string($version) !== true ||
-			$version === '' ||
-			Str::endsWith($version, '+no-version-set')
-		) {
-			return null;
-		}
-
-		// normalize the version number to be without leading `v`
-		$version = ltrim($version, 'vV');
-
-		// ensure that the version number now starts with a digit
-		if (preg_match('/^[0-9]/', $version) !== 1) {
-			return null;
-		}
-
-		return $version;
 	}
 }

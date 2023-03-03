@@ -41,15 +41,16 @@ class Media
 		// try to find a file by model and filename
 		// this should work for all original files
 		if ($file = $model->file($filename)) {
+
 			// check if the request contained an outdated media hash
 			if ($file->mediaHash() !== $hash) {
 				// if at least the token was correct, redirect
 				if (Str::startsWith($hash, $file->mediaToken() . '-') === true) {
 					return Response::redirect($file->mediaUrl(), 307);
+				} else {
+					// don't leak the correct token, render the error page
+					return false;
 				}
-
-				// don't leak the correct token, render the error page
-				return false;
 			}
 
 			// send the file to the browser
@@ -97,17 +98,16 @@ class Media
 	{
 		$kirby = App::instance();
 
-		$root = match (true) {
-			// assets
-			is_string($model)
-				=> $kirby->root('media') . '/assets/' . $model . '/' . $hash,
-			// parent files for file model that already included hash
-			$model instanceof File
-				=> dirname($model->mediaRoot()),
-			// model files
-			default
-			=> $model->mediaRoot() . '/' . $hash
-		};
+		// assets
+		if (is_string($model) === true) {
+			$root = $kirby->root('media') . '/assets/' . $model . '/' . $hash;
+		// parent files for file model that already included hash
+		} elseif (is_a($model, '\Kirby\Cms\File')) {
+			$root = dirname($model->mediaRoot());
+		// model files
+		} else {
+			$root = $model->mediaRoot() . '/' . $hash;
+		}
 
 		try {
 			$thumb   = $root . '/' . $filename;
@@ -118,22 +118,21 @@ class Media
 				return false;
 			}
 
-			$source = match (true) {
-				is_string($model) === true
-					=> $kirby->root('index') . '/' . $model . '/' . $options['filename'],
-				default
-				=> $model->file($options['filename'])->root()
-			};
+			if (is_string($model) === true) {
+				$source = $kirby->root('index') . '/' . $model . '/' . $options['filename'];
+			} else {
+				$source = $model->file($options['filename'])->root();
+			}
 
 			try {
 				$kirby->thumb($source, $thumb, $options);
 				F::remove($job);
 				return Response::file($thumb);
-			} catch (Throwable) {
+			} catch (Throwable $e) {
 				F::remove($thumb);
 				return Response::file($source);
 			}
-		} catch (Throwable) {
+		} catch (Throwable $e) {
 			return false;
 		}
 	}

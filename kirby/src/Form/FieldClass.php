@@ -2,7 +2,6 @@
 
 namespace Kirby\Form;
 
-use Closure;
 use Exception;
 use Kirby\Cms\App;
 use Kirby\Cms\HasSiblings;
@@ -163,7 +162,7 @@ abstract class FieldClass
 	/**
 	 * @return string|null
 	 */
-	public function after(): string|null
+	public function after(): ?string
 	{
 		return $this->stringTemplate($this->after);
 	}
@@ -187,7 +186,7 @@ abstract class FieldClass
 	/**
 	 * @return string|null
 	 */
-	public function before(): string|null
+	public function before(): ?string
 	{
 		return $this->stringTemplate($this->before);
 	}
@@ -260,7 +259,7 @@ abstract class FieldClass
 	 *
 	 * @return string|null
 	 */
-	public function help(): string|null
+	public function help(): ?string
 	{
 		if (empty($this->help) === false) {
 			$help = $this->stringTemplate($this->help);
@@ -275,7 +274,7 @@ abstract class FieldClass
 	 * @param string|array|null $param
 	 * @return string|null
 	 */
-	protected function i18n($param = null): string|null
+	protected function i18n($param = null): ?string
 	{
 		return empty($param) === false ? I18n::translate($param, $param) : null;
 	}
@@ -285,7 +284,7 @@ abstract class FieldClass
 	 *
 	 * @return string|null
 	 */
-	public function icon(): string|null
+	public function icon(): ?string
 	{
 		return $this->icon;
 	}
@@ -458,7 +457,7 @@ abstract class FieldClass
 	 *
 	 * @return string|null
 	 */
-	public function placeholder(): string|null
+	public function placeholder(): ?string
 	{
 		return $this->stringTemplate($this->placeholder);
 	}
@@ -579,7 +578,7 @@ abstract class FieldClass
 	 * @param string|null $icon
 	 * @return void
 	 */
-	protected function setIcon(string|null $icon = null)
+	protected function setIcon(?string $icon = null)
 	{
 		$this->icon = $icon;
 	}
@@ -685,7 +684,7 @@ abstract class FieldClass
 	 * @param string|null $string
 	 * @return string|null
 	 */
-	protected function stringTemplate(string|null $string = null): string|null
+	protected function stringTemplate(?string $string = null): ?string
 	{
 		if ($string !== null) {
 			return $this->model->toString($string);
@@ -768,7 +767,7 @@ abstract class FieldClass
 				continue;
 			}
 
-			if ($validation instanceof Closure) {
+			if (is_a($validation, 'Closure') === true) {
 				try {
 					$validation->call($this, $value);
 				} catch (Exception $e) {
@@ -817,7 +816,7 @@ abstract class FieldClass
 	{
 		try {
 			return Data::decode($value, 'json');
-		} catch (Throwable) {
+		} catch (Throwable $e) {
 			return [];
 		}
 	}
@@ -859,7 +858,7 @@ abstract class FieldClass
 	 *
 	 * @return array|null
 	 */
-	public function when(): array|null
+	public function when(): ?array
 	{
 		return $this->when;
 	}

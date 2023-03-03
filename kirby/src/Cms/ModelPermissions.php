@@ -67,10 +67,7 @@ abstract class ModelPermissions
 		}
 
 		// check for a custom overall can method
-		if (
-			method_exists($this, 'can' . $action) === true &&
-			$this->{'can' . $action}() === false
-		) {
+		if (method_exists($this, 'can' . $action) === true && $this->{'can' . $action}() === false) {
 			return false;
 		}
 
@@ -86,10 +83,7 @@ abstract class ModelPermissions
 				return true;
 			}
 
-			if (
-				is_array($options) === true &&
-				A::isAssociative($options) === true
-			) {
+			if (is_array($options) === true && A::isAssociative($options) === true) {
 				return $options[$role] ?? $options['*'] ?? false;
 			}
 		}

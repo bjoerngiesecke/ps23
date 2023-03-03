@@ -1,0 +1,25 @@
+Worktype: 
+
+----
+
+Imagetype: Detail
+
+----
+
+Materials: Wood, Tarpaulin, Food Packaging, Spoiled Food, String, Hose
+
+----
+
+Collaborators: 
+
+----
+
+Filetype: img
+
+----
+
+Keywords: Process
+
+----
+
+Sort: 9

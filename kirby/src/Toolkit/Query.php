@@ -2,8 +2,6 @@
 
 namespace Kirby\Toolkit;
 
-use Closure;
-use Kirby\Cms\Helpers;
 use Kirby\Exception\BadMethodCallException;
 use Kirby\Exception\InvalidArgumentException;
 
@@ -17,9 +15,6 @@ use Kirby\Exception\InvalidArgumentException;
  * @link      https://getkirby.com
  * @copyright Bastian Allgeier
  * @license   https://opensource.org/licenses/MIT
- *
- * @deprecated 3.8.2 Use `Kirby\Query\Query` instead
- * // TODO: Remove in 3.10.0
  */
 class Query
 {
@@ -53,12 +48,10 @@ class Query
 	 * @param string|null $query
 	 * @param array|object $data
 	 */
-	public function __construct(string|null $query = null, $data = [])
+	public function __construct(?string $query = null, $data = [])
 	{
 		$this->query = $query;
 		$this->data  = $data;
-
-		Helpers::deprecated('The `Toolkit\Query` class has been deprecated and will be removed in a future version. Use `Query\Query` instead: Kirby\Query\Query::factory($query)->resolve($data).', 'toolkit-query-class');
 	}
 
 	/**
@@ -105,7 +98,7 @@ class Query
 				if (array_key_exists($method, $data) === true) {
 					$value = $data[$method];
 
-					if ($value instanceof Closure) {
+					if (is_a($value, 'Closure') === true) {
 						$value = $value(...$args);
 					} elseif ($args !== []) {
 						throw new InvalidArgumentException('Cannot access array element ' . $method . ' with arguments');
@@ -167,16 +160,16 @@ class Query
 
 			// the args are everything inside the *outer* parentheses
 			$args = Str::substr($part, Str::position($part, '(') + 1, -1);
-			$args = preg_split(static::PARAMETERS, $args);
-			$args = array_map([$this, 'parameter'], $args);
+			$args = preg_split(self::PARAMETERS, $args);
+			$args = array_map('self::parameter', $args);
 
 			return compact('method', 'args');
+		} else {
+			return [
+				'method' => $part,
+				'args'   => []
+			];
 		}
-
-		return [
-			'method' => $part,
-			'args'   => []
-		];
 	}
 
 	/**
@@ -219,7 +212,7 @@ class Query
 		if (substr($arg, 0, 1) === '[' && substr($arg, -1) === ']') {
 			$arg = substr($arg, 1, -1);
 			$arg = preg_split(self::PARAMETERS, $arg);
-			return array_map([$this, 'parameter'], $arg);
+			return array_map('self::parameter', $arg);
 		}
 
 		// resolve parameter for objects and methods itself

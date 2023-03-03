@@ -56,7 +56,7 @@ class LayoutField extends BlocksField
 		]);
 	}
 
-	public function layouts(): array|null
+	public function layouts(): ?array
 	{
 		return $this->layouts;
 	}
@@ -200,9 +200,8 @@ class LayoutField extends BlocksField
 							$blockType = $block['type'];
 
 							try {
-								$fieldset    = $this->fieldset($blockType);
 								$blockFields = $fields[$blockType] ?? $this->fields($blockType) ?? [];
-							} catch (Throwable) {
+							} catch (Throwable $e) {
 								// skip invalid blocks
 								continue;
 							}
@@ -220,8 +219,6 @@ class LayoutField extends BlocksField
 										'key' => 'layout.validation.block',
 										'data' => [
 											'blockIndex'  => $blockIndex,
-											'field'       => $field->label(),
-											'fieldset'    => $fieldset->name(),
 											'layoutIndex' => $layoutIndex
 										]
 									]);

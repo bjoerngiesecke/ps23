@@ -1,0 +1,21 @@
+Materials: Roundwood, Steel
+
+----
+
+Keywords: Process, Prosthetic, Fabrication, Prototype, Photogrammetry
+
+----
+
+Collaborators: 
+
+----
+
+Imagetype: Elevation
+
+----
+
+Filetype: dwg
+
+----
+
+Sort: 9

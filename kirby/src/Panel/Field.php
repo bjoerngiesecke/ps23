@@ -22,6 +22,9 @@ class Field
 {
 	/**
 	 * A standard email field
+	 *
+	 * @param array $props
+	 * @return array
 	 */
 	public static function email(array $props = []): array
 	{
@@ -34,6 +37,10 @@ class Field
 
 	/**
 	 * File position
+	 *
+	 * @param \Kirby\Cms\File
+	 * @param array $props
+	 * @return array
 	 */
 	public static function filePosition(File $file, array $props = []): array
 	{
@@ -71,6 +78,9 @@ class Field
 	}
 
 
+	/**
+	 * @return array
+	 */
 	public static function hidden(): array
 	{
 		return ['type' => 'hidden'];
@@ -78,6 +88,10 @@ class Field
 
 	/**
 	 * Page position
+	 *
+	 * @param \Kirby\Cms\Page
+	 * @param array $props
+	 * @return array
 	 */
 	public static function pagePosition(Page $page, array $props = []): array
 	{
@@ -123,6 +137,9 @@ class Field
 
 	/**
 	 * A regular password field
+	 *
+	 * @param array $props
+	 * @return array
 	 */
 	public static function password(array $props = []): array
 	{
@@ -134,6 +151,9 @@ class Field
 
 	/**
 	 * User role radio buttons
+	 *
+	 * @param array $props
+	 * @return array
 	 */
 	public static function role(array $props = []): array
 	{
@@ -163,6 +183,10 @@ class Field
 		], $props);
 	}
 
+	/**
+	 * @param array $props
+	 * @return array
+	 */
 	public static function slug(array $props = []): array
 	{
 		return array_merge([
@@ -171,7 +195,12 @@ class Field
 		], $props);
 	}
 
-	public static function template(array|null $blueprints = [], array|null $props = []): array
+	/**
+	 * @param array $blueprints
+	 * @param array $props
+	 * @return array
+	 */
+	public static function template(?array $blueprints = [], ?array $props = []): array
 	{
 		$options = [];
 
@@ -192,6 +221,10 @@ class Field
 		], $props);
 	}
 
+	/**
+	 * @param array $props
+	 * @return array
+	 */
 	public static function title(array $props = []): array
 	{
 		return array_merge([
@@ -203,6 +236,9 @@ class Field
 
 	/**
 	 * Panel translation select box
+	 *
+	 * @param array $props
+	 * @return array
 	 */
 	public static function translation(array $props = []): array
 	{
@@ -223,6 +259,10 @@ class Field
 		], $props);
 	}
 
+	/**
+	 * @param array $props
+	 * @return array
+	 */
 	public static function username(array $props = []): array
 	{
 		return array_merge([

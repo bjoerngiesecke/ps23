@@ -21,12 +21,18 @@ abstract class Handler
 {
 	/**
 	 * Sanitizes the given string
+	 *
+	 * @param string $string
+	 * @return string
 	 */
 	abstract public static function sanitize(string $string): string;
 
 	/**
 	 * Sanitizes the contents of a file by overwriting
 	 * the file with the sanitized version
+	 *
+	 * @param string $file
+	 * @return void
 	 *
 	 * @throws \Kirby\Exception\Exception If the file does not exist
 	 * @throws \Kirby\Exception\Exception On other errors
@@ -40,6 +46,9 @@ abstract class Handler
 	/**
 	 * Validates file contents
 	 *
+	 * @param string $string
+	 * @return void
+	 *
 	 * @throws \Kirby\Exception\InvalidArgumentException If the file didn't pass validation
 	 * @throws \Kirby\Exception\Exception On other errors
 	 */
@@ -47,6 +56,9 @@ abstract class Handler
 
 	/**
 	 * Validates the contents of a file
+	 *
+	 * @param string $file
+	 * @return void
 	 *
 	 * @throws \Kirby\Exception\InvalidArgumentException If the file didn't pass validation
 	 * @throws \Kirby\Exception\Exception If the file does not exist
@@ -60,6 +72,9 @@ abstract class Handler
 	/**
 	 * Reads the contents of a file
 	 * for sanitization or validation
+	 *
+	 * @param string $file
+	 * @return string
 	 *
 	 * @throws \Kirby\Exception\Exception If the file does not exist
 	 */

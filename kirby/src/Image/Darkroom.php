@@ -16,15 +16,20 @@ use Exception;
  */
 class Darkroom
 {
-	public static array $types = [
+	public static $types = [
 		'gd' => 'Kirby\Image\Darkroom\GdLib',
 		'im' => 'Kirby\Image\Darkroom\ImageMagick'
 	];
 
-	protected array $settings = [];
+	/**
+	 * @var array
+	 */
+	protected $settings = [];
 
 	/**
 	 * Darkroom constructor
+	 *
+	 * @param array $settings
 	 */
 	public function __construct(array $settings = [])
 	{
@@ -35,9 +40,12 @@ class Darkroom
 	 * Creates a new Darkroom instance for the given
 	 * type/driver
 	 *
+	 * @param string $type
+	 * @param array $settings
+	 * @return mixed
 	 * @throws \Exception
 	 */
-	public static function factory(string $type, array $settings = []): object
+	public static function factory(string $type, array $settings = [])
 	{
 		if (isset(static::$types[$type]) === false) {
 			throw new Exception('Invalid Darkroom type');
@@ -49,6 +57,8 @@ class Darkroom
 
 	/**
 	 * Returns the default thumb settings
+	 *
+	 * @return array
 	 */
 	protected function defaults(): array
 	{
@@ -68,6 +78,9 @@ class Darkroom
 
 	/**
 	 * Normalizes all thumb options
+	 *
+	 * @param array $options
+	 * @return array
 	 */
 	protected function options(array $options = []): array
 	{
@@ -95,7 +108,9 @@ class Darkroom
 			unset($options['bw']);
 		}
 
-		$options['quality'] ??= $this->settings['quality'];
+		if ($options['quality'] === null) {
+			$options['quality'] = $this->settings['quality'];
+		}
 
 		return $options;
 	}
@@ -104,8 +119,12 @@ class Darkroom
 	 * Calculates the dimensions of the final thumb based
 	 * on the given options and returns a full array with
 	 * all the final options to be used for the image generator
+	 *
+	 * @param string $file
+	 * @param array $options
+	 * @return array
 	 */
-	public function preprocess(string $file, array $options = []): array
+	public function preprocess(string $file, array $options = [])
 	{
 		$options = $this->options($options);
 		$image   = new Image($file);
@@ -129,6 +148,10 @@ class Darkroom
 	/**
 	 * This method must be replaced by the driver to run the
 	 * actual image processing job.
+	 *
+	 * @param string $file
+	 * @param array $options
+	 * @return array
 	 */
 	public function process(string $file, array $options = []): array
 	{

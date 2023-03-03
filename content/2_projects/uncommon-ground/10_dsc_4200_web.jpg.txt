@@ -1,0 +1,25 @@
+Worktype: 
+
+----
+
+Imagetype: Detail
+
+----
+
+Materials: LED, Spray Paint, Water
+
+----
+
+Collaborators: 
+
+----
+
+Filetype: img
+
+----
+
+Keywords: Process
+
+----
+
+Sort: 6

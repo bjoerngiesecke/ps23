@@ -1,0 +1,15 @@
+title: Project
+sections:
+  gallery:
+    type: files
+    layout: cards
+  content:
+    type: fields
+    fields:
+      text:
+        type: textarea
+      year:
+        type: text
+      location:
+        type: text
+        help: Berlin, Segovia, Shanghai...

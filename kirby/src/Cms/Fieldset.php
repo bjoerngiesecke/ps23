@@ -19,7 +19,7 @@ use Kirby\Toolkit\Str;
  */
 class Fieldset extends Item
 {
-	public const ITEMS_CLASS = Fieldsets::class;
+	public const ITEMS_CLASS = '\Kirby\Cms\Fieldsets';
 
 	protected $disabled;
 	protected $editable;
@@ -92,7 +92,7 @@ class Fieldset extends Item
 	 * @param array|string $name
 	 * @return string|null
 	 */
-	protected function createName($name): string|null
+	protected function createName($name): ?string
 	{
 		return I18n::translate($name, $name);
 	}
@@ -101,7 +101,7 @@ class Fieldset extends Item
 	 * @param array|string $label
 	 * @return string|null
 	 */
-	protected function createLabel($label = null): string|null
+	protected function createLabel($label = null): ?string
 	{
 		return I18n::translate($label, $label);
 	}
@@ -195,7 +195,7 @@ class Fieldset extends Item
 	/**
 	 * @return string|null
 	 */
-	public function icon(): string|null
+	public function icon(): ?string
 	{
 		return $this->icon;
 	}
@@ -203,7 +203,7 @@ class Fieldset extends Item
 	/**
 	 * @return string|null
 	 */
-	public function label(): string|null
+	public function label(): ?string
 	{
 		return $this->label;
 	}

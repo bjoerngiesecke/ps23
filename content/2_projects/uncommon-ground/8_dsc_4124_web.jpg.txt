@@ -1,0 +1,25 @@
+Worktype: 
+
+----
+
+Imagetype: 
+
+----
+
+Materials: LED, CCTV, Monitor, Reflective Paper
+
+----
+
+Collaborators: 
+
+----
+
+Filetype: img
+
+----
+
+Keywords: Process, Installation, Set
+
+----
+
+Sort: 6

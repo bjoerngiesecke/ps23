@@ -6,7 +6,7 @@ trait Min
 {
 	protected $min;
 
-	public function min(): int|null
+	public function min(): ?int
 	{
 		return $this->min;
 	}

@@ -2,12 +2,9 @@
 
 namespace Kirby\Cms;
 
-use Closure;
-use Kirby\Exception\Exception;
 use Kirby\Filesystem\F;
 use Kirby\Http\Response;
 use Kirby\Toolkit\I18n;
-use Throwable;
 use Whoops\Handler\CallbackHandler;
 use Whoops\Handler\Handler;
 use Whoops\Handler\PlainTextHandler;
@@ -87,7 +84,7 @@ trait AppErrors
 			$handler = new CallbackHandler(function ($exception, $inspector, $run) {
 				$fatal = $this->option('fatal');
 
-				if ($fatal instanceof Closure) {
+				if (is_a($fatal, 'Closure') === true) {
 					echo $fatal($this, $exception);
 				} else {
 					include $this->root('kirby') . '/views/fatal.php';
@@ -112,11 +109,11 @@ trait AppErrors
 	protected function handleJsonErrors(): void
 	{
 		$handler = new CallbackHandler(function ($exception, $inspector, $run) {
-			if ($exception instanceof Exception) {
+			if (is_a($exception, 'Kirby\Exception\Exception') === true) {
 				$httpCode = $exception->getHttpCode();
 				$code     = $exception->getCode();
 				$details  = $exception->getDetails();
-			} elseif ($exception instanceof Throwable) {
+			} elseif (is_a($exception, '\Throwable') === true) {
 				$httpCode = 500;
 				$code     = $exception->getCode();
 				$details  = null;
@@ -163,19 +160,19 @@ trait AppErrors
 		$whoops = $this->whoops();
 		$whoops->clearHandlers();
 		$whoops->pushHandler($handler);
-		$whoops->pushHandler($this->getAdditionalWhoopsHandler());
+		$whoops->pushHandler($this->getExceptionHookWhoopsHandler());
 		$whoops->register(); // will only do something if not already registered
 	}
 
 	/**
-	 * Whoops callback handler for additional error handling
-	 * (`system.exception` hook and output to error log)
+	 * Initializes a callback handler for triggering the `system.exception` hook
+	 *
+	 * @return \Whoops\Handler\CallbackHandler
 	 */
-	protected function getAdditionalWhoopsHandler(): CallbackHandler
+	protected function getExceptionHookWhoopsHandler(): CallbackHandler
 	{
 		return new CallbackHandler(function ($exception, $inspector, $run) {
 			$this->trigger('system.exception', compact('exception'));
-			error_log($exception);
 			return Handler::DONE;
 		});
 	}

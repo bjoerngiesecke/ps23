@@ -104,7 +104,9 @@ return [
 		'pattern' => 'pages/(:any)/sections/(:any)',
 		'method'  => 'GET',
 		'action'  => function (string $id, string $sectionName) {
-			return $this->page($id)->blueprint()->section($sectionName)?->toResponse();
+			if ($section = $this->page($id)->blueprint()->section($sectionName)) {
+				return $section->toResponse();
+			}
 		}
 	],
 	[

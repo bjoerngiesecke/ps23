@@ -66,7 +66,11 @@ class Languages extends Collection
 	 */
 	public function default()
 	{
-		return $this->findBy('isDefault', true) ?? $this->first();
+		if ($language = $this->findBy('isDefault', true)) {
+			return $language;
+		} else {
+			return $this->first();
+		}
 	}
 
 	/**
@@ -81,7 +85,7 @@ class Languages extends Collection
 		$files     = glob(App::instance()->root('languages') . '/*.php');
 
 		foreach ($files as $file) {
-			$props = F::load($file, allowOutput: false);
+			$props = F::load($file);
 
 			if (is_array($props) === true) {
 				// inject the language code from the filename

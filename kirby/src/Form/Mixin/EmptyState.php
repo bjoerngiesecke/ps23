@@ -11,7 +11,7 @@ trait EmptyState
 		$this->empty = $this->i18n($empty);
 	}
 
-	public function empty(): string|null
+	public function empty(): ?string
 	{
 		return $this->stringTemplate($this->empty);
 	}

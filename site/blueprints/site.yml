@@ -1,5 +1,2 @@
-title: Site
-
-sections:
-  pages:
-    type: pages
+preset: pages
+unlisted: true

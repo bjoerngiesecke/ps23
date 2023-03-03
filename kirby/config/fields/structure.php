@@ -108,8 +108,9 @@ return [
 			$columns = [];
 			$mobile  = 0;
 
-			if (empty($this->columns) === true) {
+			if (empty($this->columns)) {
 				foreach ($this->fields as $field) {
+
 					// Skip hidden and unsaveable fields
 					// They should never be included as column
 					if ($field['type'] === 'hidden' || $field['saveable'] === false) {
@@ -129,10 +130,7 @@ return [
 
 					$field = $this->fields[$columnName] ?? null;
 
-					if (
-						empty($field) === true ||
-						$field['saveable'] === false
-					) {
+					if (empty($field) === true || $field['saveable'] === false) {
 						continue;
 					}
 
@@ -140,10 +138,10 @@ return [
 						$mobile++;
 					}
 
-					$columns[$columnName] = array_merge([
+					$columns[$columnName] = array_merge($columnProps, [
 						'type'  => $field['type'],
 						'label' => $field['label'] ?? $field['name']
-					], $columnProps);
+					]);
 				}
 			}
 

@@ -57,7 +57,7 @@ class BlocksField extends FieldClass
 				$block['content'] = $this->form($fields[$type], $block['content'])->$to();
 
 				$result[] = $block;
-			} catch (Throwable) {
+			} catch (Throwable $e) {
 				$result[] = $block;
 
 				// skip invalid blocks
@@ -87,7 +87,7 @@ class BlocksField extends FieldClass
 		return $this->fieldsets;
 	}
 
-	public function fieldsetGroups(): array|null
+	public function fieldsetGroups(): ?array
 	{
 		$fieldsetGroups = $this->fieldsets()->groups();
 		return empty($fieldsetGroups) === true ? null : $fieldsetGroups;
@@ -253,9 +253,8 @@ class BlocksField extends FieldClass
 					$blockType = $block['type'];
 
 					try {
-						$fieldset    = $this->fieldset($blockType);
-						$blockFields = $fields[$blockType] ?? $fieldset->fields() ?? [];
-					} catch (Throwable) {
+						$blockFields = $fields[$blockType] ?? $this->fields($blockType) ?? [];
+					} catch (Throwable $e) {
 						// skip invalid blocks
 						continue;
 					}
@@ -272,9 +271,7 @@ class BlocksField extends FieldClass
 							throw new InvalidArgumentException([
 								'key' => 'blocks.validation',
 								'data' => [
-									'field'    => $field->label(),
-									'fieldset' => $fieldset->name(),
-									'index'    => $index
+									'index' => $index,
 								]
 							]);
 						}

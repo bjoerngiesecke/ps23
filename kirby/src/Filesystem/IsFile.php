@@ -26,21 +26,29 @@ trait IsFile
 
 	/**
 	 * File asset object
+	 *
+	 * @var \Kirby\Filesystem\File
 	 */
-	protected File|null $asset = null;
+	protected $asset;
 
 	/**
 	 * Absolute file path
+	 *
+	 * @var string|null
 	 */
-	protected string|null $root = null;
+	protected $root;
 
 	/**
 	 * Absolute file URL
+	 *
+	 * @var string|null
 	 */
-	protected string|null $url = null;
+	protected $url;
 
 	/**
 	 * Constructor sets all file properties
+	 *
+	 * @param array $props
 	 */
 	public function __construct(array $props)
 	{
@@ -50,6 +58,9 @@ trait IsFile
 	/**
 	 * Magic caller for asset methods
 	 *
+	 * @param string $method
+	 * @param array $arguments
+	 * @return mixed
 	 * @throws \Kirby\Exception\BadMethodCallException
 	 */
 	public function __call(string $method, array $arguments = [])
@@ -69,6 +80,8 @@ trait IsFile
 
 	/**
 	 * Converts the asset to a string
+	 *
+	 * @return string
 	 */
 	public function __toString(): string
 	{
@@ -77,29 +90,33 @@ trait IsFile
 
 	/**
 	 * Returns the file asset object
+	 *
+	 * @param array|string|null $props
+	 * @return \Kirby\Filesystem\File
 	 */
-	public function asset(array|string|null $props = null): File
+	public function asset($props = null)
 	{
 		if ($this->asset !== null) {
 			return $this->asset;
 		}
 
-		$props ??= [];
+		$props = $props ?? [
+			'root' => $this->root(),
+			'url'  => $this->url()
+		];
 
-		if (is_string($props) === true) {
-			$props = ['root' => $props];
+		switch ($this->type()) {
+			case 'image':
+				return $this->asset = new Image($props);
+			default:
+				return $this->asset = new File($props);
 		}
-
-		$props['model'] ??= $this;
-
-		return $this->asset = match ($this->type()) {
-			'image' => new Image($props),
-			default => new File($props)
-		};
 	}
 
 	/**
 	 * Checks if the file exists on disk
+	 *
+	 * @return bool
 	 */
 	public function exists(): bool
 	{
@@ -109,29 +126,23 @@ trait IsFile
 		return file_exists($this->root()) === true;
 	}
 
-	/**
-	 * To check the existence of the IsFile trait
-	 *
-	 * @todo Switch to class constant in traits when min PHP version 8.2 required
-	 * @codeCoverageIgnore
-	 */
-	protected function hasIsFileTrait(): bool
-	{
-		return true;
-	}
 
 	/**
 	 * Returns the app instance
+	 *
+	 * @return \Kirby\Cms\App
 	 */
-	public function kirby(): App
+	public function kirby()
 	{
 		return App::instance();
 	}
 
 	/**
 	 * Returns the given file path
+	 *
+	 * @return string|null
 	 */
-	public function root(): string|null
+	public function root(): ?string
 	{
 		return $this->root;
 	}
@@ -139,9 +150,10 @@ trait IsFile
 	/**
 	 * Setter for the root
 	 *
+	 * @param string|null $root
 	 * @return $this
 	 */
-	protected function setRoot(string|null $root = null): static
+	protected function setRoot(?string $root = null)
 	{
 		$this->root = $root;
 		return $this;
@@ -150,9 +162,10 @@ trait IsFile
 	/**
 	 * Setter for the file url
 	 *
+	 * @param string|null $url
 	 * @return $this
 	 */
-	protected function setUrl(string|null $url = null): static
+	protected function setUrl(?string $url = null)
 	{
 		$this->url = $url;
 		return $this;
@@ -160,8 +173,10 @@ trait IsFile
 
 	/**
 	 * Returns the file type
+	 *
+	 * @return string|null
 	 */
-	public function type(): string|null
+	public function type(): ?string
 	{
 		// Important to include this in the trait
 		// to avoid infinite loops when trying
@@ -171,8 +186,10 @@ trait IsFile
 
 	/**
 	 * Returns the absolute url for the file
+	 *
+	 * @return string|null
 	 */
-	public function url(): string|null
+	public function url(): ?string
 	{
 		return $this->url;
 	}

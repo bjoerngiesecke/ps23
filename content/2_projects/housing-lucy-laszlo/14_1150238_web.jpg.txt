@@ -1,0 +1,25 @@
+Worktype: 
+
+----
+
+Imagetype: 
+
+----
+
+Materials: PVC Pipe, Wood Residue, Cement, Can, Food Wrapping, String
+
+----
+
+Collaborators: 
+
+----
+
+Filetype: img
+
+----
+
+Keywords: Process, Set, Formwork
+
+----
+
+Sort: 12

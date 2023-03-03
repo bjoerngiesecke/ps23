@@ -2,7 +2,6 @@
 
 namespace Kirby\Cms;
 
-use Closure;
 use Kirby\Exception\NotFoundException;
 use Kirby\Filesystem\F;
 use Kirby\Toolkit\Controller;
@@ -63,7 +62,9 @@ class Collections
 	public function get(string $name, array $data = [])
 	{
 		// if not yet loaded
-		$this->collections[$name] ??= $this->load($name);
+		if (isset($this->collections[$name]) === false) {
+			$this->collections[$name] = $this->load($name);
+		}
 
 		// if not yet cached
 		if (
@@ -100,7 +101,7 @@ class Collections
 		try {
 			$this->load($name);
 			return true;
-		} catch (NotFoundException) {
+		} catch (NotFoundException $e) {
 			return false;
 		}
 	}
@@ -121,9 +122,9 @@ class Collections
 		$file = $kirby->root('collections') . '/' . $name . '.php';
 
 		if (is_file($file) === true) {
-			$collection = F::load($file, allowOutput: false);
+			$collection = F::load($file);
 
-			if ($collection instanceof Closure) {
+			if (is_a($collection, 'Closure')) {
 				return $collection;
 			}
 		}

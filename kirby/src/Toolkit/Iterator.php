@@ -15,21 +15,20 @@ use IteratorAggregate;
  * @link      https://getkirby.com
  * @copyright Bastian Allgeier
  * @license   https://opensource.org/licenses/MIT
- *
- * @psalm-suppress MissingTemplateParam Implementing template params
- * 										in this class would require
- * 										implementing them throughout
- * 										the code base: https://github.com/getkirby/kirby/pull/4886#pullrequestreview-1203577545
  */
 class Iterator implements IteratorAggregate
 {
 	/**
 	 * The data array
+	 *
+	 * @var array
 	 */
-	public array $data = [];
+	public $data = [];
 
 	/**
 	 * Constructor
+	 *
+	 * @param array $data
 	 */
 	public function __construct(array $data = [])
 	{
@@ -38,6 +37,8 @@ class Iterator implements IteratorAggregate
 
 	/**
 	 * Get an iterator for the items.
+	 *
+	 * @return \ArrayIterator
 	 */
 	public function getIterator(): ArrayIterator
 	{
@@ -46,14 +47,18 @@ class Iterator implements IteratorAggregate
 
 	/**
 	 * Returns the current key
+	 *
+	 * @return string
 	 */
-	public function key(): int|string|null
+	public function key()
 	{
 		return key($this->data);
 	}
 
 	/**
 	 * Returns an array of all keys
+	 *
+	 * @return array
 	 */
 	public function keys(): array
 	{
@@ -62,6 +67,8 @@ class Iterator implements IteratorAggregate
 
 	/**
 	 * Returns the current element
+	 *
+	 * @return mixed
 	 */
 	public function current()
 	{
@@ -71,6 +78,8 @@ class Iterator implements IteratorAggregate
 	/**
 	 * Moves the cursor to the previous element
 	 * and returns it
+	 *
+	 * @return mixed
 	 */
 	public function prev()
 	{
@@ -80,6 +89,8 @@ class Iterator implements IteratorAggregate
 	/**
 	 * Moves the cursor to the next element
 	 * and returns it
+	 *
+	 * @return mixed
 	 */
 	public function next()
 	{
@@ -89,13 +100,15 @@ class Iterator implements IteratorAggregate
 	/**
 	 * Moves the cursor to the first element
 	 */
-	public function rewind(): void
+	public function rewind()
 	{
 		reset($this->data);
 	}
 
 	/**
 	 * Checks if the current element is valid
+	 *
+	 * @return bool
 	 */
 	public function valid(): bool
 	{
@@ -104,6 +117,8 @@ class Iterator implements IteratorAggregate
 
 	/**
 	 * Counts all elements
+	 *
+	 * @return int
 	 */
 	public function count(): int
 	{
@@ -116,7 +131,7 @@ class Iterator implements IteratorAggregate
 	 * @param mixed $needle the element to search for
 	 * @return int|false the index (int) of the element or false
 	 */
-	public function indexOf($needle): int|false
+	public function indexOf($needle)
 	{
 		return array_search($needle, array_values($this->data));
 	}
@@ -125,9 +140,9 @@ class Iterator implements IteratorAggregate
 	 * Tries to find the key for the given element
 	 *
 	 * @param mixed $needle the element to search for
-	 * @return int|string|false the name of the key or false
+	 * @return string|false the name of the key or false
 	 */
-	public function keyOf($needle): int|string|false
+	public function keyOf($needle)
 	{
 		return array_search($needle, $this->data);
 	}
@@ -136,16 +151,18 @@ class Iterator implements IteratorAggregate
 	 * Checks by key if an element is included
 	 *
 	 * @param mixed $key
+	 * @return bool
 	 */
 	public function has($key): bool
 	{
-		return isset($this->data[$key]) === true;
+		return isset($this->data[$key]);
 	}
 
 	/**
 	 * Checks if the current key is set
 	 *
 	 * @param mixed $key the key to check
+	 * @return bool
 	 */
 	public function __isset($key): bool
 	{
@@ -154,6 +171,8 @@ class Iterator implements IteratorAggregate
 
 	/**
 	 * Simplified var_dump output
+	 *
+	 * @return array
 	 */
 	public function __debugInfo(): array
 	{

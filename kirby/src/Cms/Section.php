@@ -44,7 +44,7 @@ class Section extends Component
 			throw new InvalidArgumentException('Undefined section model');
 		}
 
-		if ($attrs['model'] instanceof Model === false) {
+		if (is_a($attrs['model'], 'Kirby\Cms\Model') === false) {
 			throw new InvalidArgumentException('Invalid section model');
 		}
 

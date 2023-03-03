@@ -2,9 +2,7 @@
 
 namespace Kirby\Toolkit;
 
-use AllowDynamicProperties;
 use ArgumentCountError;
-use Closure;
 use Kirby\Exception\Exception;
 use Kirby\Exception\InvalidArgumentException;
 use Kirby\Filesystem\F;
@@ -18,11 +16,7 @@ use TypeError;
  * @link      https://getkirby.com
  * @copyright Bastian Allgeier
  * @license   https://opensource.org/licenses/MIT
- *
- * @todo remove the following psalm suppress when PHP >= 8.2 required
- * @psalm-suppress UndefinedAttributeClass
  */
-#[AllowDynamicProperties]
 class Component
 {
 	/**
@@ -185,17 +179,17 @@ class Component
 	protected function applyProps(array $props): void
 	{
 		foreach ($props as $propName => $propFunction) {
-			if ($propFunction instanceof Closure) {
+			if (is_a($propFunction, 'Closure') === true) {
 				if (isset($this->attrs[$propName]) === true) {
 					try {
 						$this->$propName = $this->props[$propName] = $propFunction->call($this, $this->attrs[$propName]);
-					} catch (TypeError) {
+					} catch (TypeError $e) {
 						throw new TypeError('Invalid value for "' . $propName . '"');
 					}
 				} else {
 					try {
 						$this->$propName = $this->props[$propName] = $propFunction->call($this);
-					} catch (ArgumentCountError) {
+					} catch (ArgumentCountError $e) {
 						throw new ArgumentCountError('Please provide a value for "' . $propName . '"');
 					}
 				}
@@ -215,7 +209,7 @@ class Component
 	protected function applyComputed(array $computed): void
 	{
 		foreach ($computed as $computedName => $computedFunction) {
-			if ($computedFunction instanceof Closure) {
+			if (is_a($computedFunction, 'Closure') === true) {
 				$this->$computedName = $this->computed[$computedName] = $computedFunction->call($this);
 			}
 		}
@@ -237,7 +231,7 @@ class Component
 				throw new Exception('Component definition ' . $definition . ' does not exist');
 			}
 
-			static::$types[$type] = $definition = F::load($definition, allowOutput: false);
+			static::$types[$type] = $definition = F::load($definition);
 		}
 
 		return $definition;
@@ -259,11 +253,7 @@ class Component
 
 		if (isset($definition['extends']) === true) {
 			// extend other definitions
-			$options = array_replace_recursive(
-				static::defaults(),
-				static::load($definition['extends']),
-				$definition
-			);
+			$options = array_replace_recursive(static::defaults(), static::load($definition['extends']), $definition);
 		} else {
 			// inject defaults
 			$options = array_replace_recursive(static::defaults(), $definition);
@@ -275,14 +265,10 @@ class Component
 				if (isset(static::$mixins[$mixin]) === true) {
 					if (is_string(static::$mixins[$mixin]) === true) {
 						// resolve a path to a mixin on demand
-
-						static::$mixins[$mixin] = F::load(static::$mixins[$mixin], allowOutput: false);
+						static::$mixins[$mixin] = include static::$mixins[$mixin];
 					}
 
-					$options = array_replace_recursive(
-						static::$mixins[$mixin],
-						$options
-					);
+					$options = array_replace_recursive(static::$mixins[$mixin], $options);
 				}
 			}
 		}
@@ -297,7 +283,7 @@ class Component
 	 */
 	public function toArray(): array
 	{
-		if (($this->options['toArray'] ?? null) instanceof Closure) {
+		if (is_a($this->options['toArray'] ?? null, 'Closure') === true) {
 			return $this->options['toArray']->call($this);
 		}
 

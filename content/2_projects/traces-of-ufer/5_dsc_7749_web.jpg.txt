@@ -1,0 +1,25 @@
+Worktype: 
+
+----
+
+Imagetype: Detail
+
+----
+
+Materials: Aluminium
+
+----
+
+Collaborators: 
+
+----
+
+Filetype: img
+
+----
+
+Keywords: 
+
+----
+
+Sort: 1

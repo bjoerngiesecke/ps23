@@ -43,7 +43,7 @@ class UserPicker extends Picker
 		// find the right default query
 		if (empty($this->options['query']) === false) {
 			$query = $this->options['query'];
-		} elseif ($model instanceof User) {
+		} elseif (is_a($model, 'Kirby\Cms\User') === true) {
 			$query = 'user.siblings';
 		} else {
 			$query = 'kirby.users';
@@ -53,7 +53,7 @@ class UserPicker extends Picker
 		$users = $model->query($query);
 
 		// catch invalid data
-		if ($users instanceof Users === false) {
+		if (is_a($users, 'Kirby\Cms\Users') === false) {
 			throw new InvalidArgumentException('Your query must return a set of users');
 		}
 

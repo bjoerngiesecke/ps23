@@ -33,7 +33,7 @@ class Find
 		$filename = urldecode($filename);
 		$file     = static::parent($path)->file($filename);
 
-		if ($file?->isReadable() === true) {
+		if ($file && $file->isReadable() === true) {
 			return $file;
 		}
 
@@ -78,7 +78,7 @@ class Find
 		$id   = str_replace(['+', ' '], '/', $id);
 		$page = App::instance()->page($id);
 
-		if ($page?->isReadable() === true) {
+		if ($page && $page->isReadable() === true) {
 			return $page;
 		}
 
@@ -117,16 +117,31 @@ class Find
 
 		$kirby = App::instance();
 
-		$model = match ($modelName) {
-			'site'    => $kirby->site(),
-			'account' => static::user(),
-			'page'    => static::page(basename($path)),
-			'file'    => static::file(...explode('/files/', $path)),
-			'user'    => $kirby->user(basename($path)),
-			default   => throw new InvalidArgumentException('Invalid model type: ' . $modelType)
-		};
+		switch ($modelName) {
+			case 'site':
+				$model = $kirby->site();
+				break;
+			case 'account':
+				$model = static::user();
+				break;
+			case 'page':
+				$model = static::page(basename($path));
+				break;
+			case 'file':
+				$model = static::file(...explode('/files/', $path));
+				break;
+			case 'user':
+				$model = $kirby->user(basename($path));
+				break;
+			default:
+				throw new InvalidArgumentException('Invalid model type: ' . $modelType);
+		}
 
-		return $model ?? throw new NotFoundException([
+		if ($model) {
+			return $model;
+		}
+
+		throw new NotFoundException([
 			'key' => $modelName . '.undefined'
 		]);
 	}
@@ -152,18 +167,21 @@ class Find
 
 		// get the authenticated user
 		if ($id === null) {
-			$user = $kirby->user(
-				null,
-				$kirby->option('api.allowImpersonation', false)
-			);
+			if ($user = $kirby->user(null, $kirby->option('api.allowImpersonation', false))) {
+				return $user;
+			}
 
-			return $user ?? throw new NotFoundException([
+			throw new NotFoundException([
 				'key' => 'user.undefined'
 			]);
 		}
 
 		// get a specific user by id
-		return $kirby->user($id) ?? throw new NotFoundException([
+		if ($user = $kirby->user($id)) {
+			return $user;
+		}
+
+		throw new NotFoundException([
 			'key'  => 'user.notFound',
 			'data' => [
 				'name' => $id

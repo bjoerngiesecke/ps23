@@ -1,0 +1,25 @@
+Worktype: 
+
+----
+
+Imagetype: 
+
+----
+
+Materials: Wood, Tarpaulin, Skipping Rope
+
+----
+
+Collaborators: Preston Mila
+
+----
+
+Filetype: img
+
+----
+
+Keywords: Process, Set
+
+----
+
+Sort: 9

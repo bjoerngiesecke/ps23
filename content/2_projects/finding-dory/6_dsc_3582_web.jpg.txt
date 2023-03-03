@@ -1,0 +1,25 @@
+Worktype: 
+
+----
+
+Imagetype: 
+
+----
+
+Materials: Reflective Paper, LED, MDF
+
+----
+
+Collaborators: Romain Odin Lepoutre
+
+----
+
+Filetype: img
+
+----
+
+Keywords: Process, Set
+
+----
+
+Sort: 5

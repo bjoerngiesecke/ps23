@@ -20,6 +20,8 @@ trait Data
 {
 	/**
 	 * Improved `var_dump` output
+	 *
+	 * @return array
 	 */
 	public function __debugInfo(): array
 	{
@@ -31,6 +33,8 @@ trait Data
 	 * implemented by each class using this Trait
 	 * and has to return an associative array
 	 * for the get method
+	 *
+	 * @return array
 	 */
 	abstract public function data(): array;
 
@@ -39,8 +43,12 @@ trait Data
 	 * Trait. You can use it to fetch a single value
 	 * of the data array by key or multiple values by
 	 * passing an array of keys.
+	 *
+	 * @param string|array $key
+	 * @param mixed|null $default
+	 * @return mixed
 	 */
-	public function get(string|array $key, $default = null)
+	public function get($key, $default = null)
 	{
 		if (is_array($key) === true) {
 			$result = [];
@@ -56,6 +64,8 @@ trait Data
 	/**
 	 * Returns the data array.
 	 * This is basically an alias for Data::data()
+	 *
+	 * @return array
 	 */
 	public function toArray(): array
 	{
@@ -64,6 +74,8 @@ trait Data
 
 	/**
 	 * Converts the data array to json
+	 *
+	 * @return string
 	 */
 	public function toJson(): string
 	{

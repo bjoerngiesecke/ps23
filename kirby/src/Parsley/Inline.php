@@ -2,10 +2,8 @@
 
 namespace Kirby\Parsley;
 
-use DOMComment;
 use DOMNode;
 use DOMNodeList;
-use DOMText;
 use Kirby\Toolkit\Html;
 
 /**
@@ -22,19 +20,33 @@ use Kirby\Toolkit\Html;
  */
 class Inline
 {
-	protected string $html = '';
-	protected array $marks = [];
+	/**
+	 * @var string
+	 */
+	protected $html = '';
 
+	/**
+	 * @var array
+	 */
+	protected $marks = [];
+
+	/**
+	 * @param \DOMNode $node
+	 * @param array $marks
+	 */
 	public function __construct(DOMNode $node, array $marks = [])
 	{
 		$this->createMarkRules($marks);
-		$this->html = trim(static::parseNode($node, $this->marks) ?? '');
+		$this->html = trim(static::parseNode($node, $this->marks));
 	}
 
 	/**
 	 * Loads all mark rules
+	 *
+	 * @param array $marks
+	 * @return array
 	 */
-	protected function createMarkRules(array $marks): array
+	protected function createMarkRules(array $marks)
 	{
 		foreach ($marks as $mark) {
 			$this->marks[$mark['tag']] = $mark;
@@ -46,6 +58,10 @@ class Inline
 	/**
 	 * Get all allowed attributes for a DOMNode
 	 * as clean array
+	 *
+	 * @param DOMNode $node
+	 * @param array $marks
+	 * @return array
 	 */
 	public static function parseAttrs(DOMNode $node, array $marks = []): array
 	{
@@ -67,6 +83,10 @@ class Inline
 	/**
 	 * Parses all children and creates clean HTML
 	 * for each of them.
+	 *
+	 * @param \DOMNodeList $children
+	 * @param array $marks
+	 * @return string
 	 */
 	public static function parseChildren(DOMNodeList $children, array $marks): string
 	{
@@ -80,8 +100,11 @@ class Inline
 	/**
 	 * Go through all child elements and create
 	 * clean inner HTML for them
+	 *
+	 * @param DOMNode $node
+	 * @return string|null
 	 */
-	public static function parseInnerHtml(DOMNode $node, array $marks = []): string|null
+	public static function parseInnerHtml(DOMNode $node, array $marks = []): ?string
 	{
 		$html = static::parseChildren($node->childNodes, $marks);
 
@@ -100,15 +123,19 @@ class Inline
 
 	/**
 	 * Converts the given node to clean HTML
+	 *
+	 * @param \DOMNode $node
+	 * @param array $marks
+	 * @return string|null
 	 */
-	public static function parseNode(DOMNode $node, array $marks = []): string|null
+	public static function parseNode(DOMNode $node, array $marks = []): ?string
 	{
-		if ($node instanceof DOMText) {
+		if (is_a($node, 'DOMText') === true) {
 			return Html::encode($node->textContent);
 		}
 
 		// ignore comments
-		if ($node instanceof DOMComment) {
+		if (is_a($node, 'DOMComment') === true) {
 			return null;
 		}
 
@@ -138,6 +165,8 @@ class Inline
 
 	/**
 	 * Returns the HTML contents of the element
+	 *
+	 * @return string
 	 */
 	public function innerHtml(): string
 	{

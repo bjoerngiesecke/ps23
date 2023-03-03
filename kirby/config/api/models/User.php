@@ -24,8 +24,7 @@ return [
 		'prev'        => fn (User $user) => $user->prev(),
 		'role'        => fn (User $user) => $user->role(),
 		'roles'       => fn (User $user) => $user->roles(),
-		'username'    => fn (User $user) => $user->username(),
-		'uuid'        => fn (User $user) => $user->uuid()?->toString()
+		'username'    => fn (User $user) => $user->username()
 	],
 	'type'  => 'Kirby\Cms\User',
 	'views' => [
@@ -40,8 +39,7 @@ return [
 			'options',
 			'prev' => 'compact',
 			'role',
-			'username',
-			'uuid'
+			'username'
 		],
 		'compact' => [
 			'avatar' => 'compact',
@@ -50,8 +48,7 @@ return [
 			'language',
 			'name',
 			'role' => 'compact',
-			'username',
-			'uuid'
+			'username'
 		],
 		'auth' => [
 			'avatar' => 'compact',
@@ -75,7 +72,6 @@ return [
 			'prev' => ['id', 'name'],
 			'role',
 			'username',
-			'uuid'
 		],
 	]
 ];

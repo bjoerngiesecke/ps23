@@ -21,17 +21,23 @@ class SmartyPants
 	/**
 	 * Array with all configured options
 	 * for the parser
+	 *
+	 * @var array
 	 */
-	protected array $options = [];
+	protected $options = [];
 
 	/**
 	 * Michelf's parser object
+	 *
+	 * @var SmartyPantsTypographer
 	 */
-	protected SmartyPantsTypographer $parser;
+	protected $parser;
 
 	/**
 	 * Returns default values for all
 	 * available parser options
+	 *
+	 * @return array
 	 */
 	public function defaults(): array
 	{
@@ -69,6 +75,8 @@ class SmartyPants
 	/**
 	 * Creates a new SmartyPants parser
 	 * with the given options
+	 *
+	 * @param array $options
 	 */
 	public function __construct(array $options = [])
 	{
@@ -106,12 +114,14 @@ class SmartyPants
 
 	/**
 	 * Parses the given text
+	 *
+	 * @param string|null $text
+	 * @return string
 	 */
-	public function parse(string|null $text = null): string
+	public function parse(string $text = null): string
 	{
 		// prepare the text
-		$text ??= '';
-		$text   = str_replace('&quot;', '"', $text);
+		$text = str_replace('&quot;', '"', $text ?? '');
 
 		// parse the text
 		return $this->parser->transform($text);

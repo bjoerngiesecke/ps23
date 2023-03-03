@@ -15,16 +15,23 @@ class Camera
 {
 	/**
 	 * Make exif data
+	 *
+	 * @var string|null
 	 */
-	protected string|null $make;
+	protected $make;
 
 	/**
 	 * Model exif data
 	 *
-	 * @var
+	 * @var string|null
 	 */
-	protected string|null $model;
+	protected $model;
 
+	/**
+	 * Constructor
+	 *
+	 * @param array $exif
+	 */
 	public function __construct(array $exif)
 	{
 		$this->make  = $exif['Make'] ?? null;
@@ -33,22 +40,28 @@ class Camera
 
 	/**
 	 * Returns the make of the camera
+	 *
+	 * @return string
 	 */
-	public function make(): string|null
+	public function make(): ?string
 	{
 		return $this->make;
 	}
 
 	/**
 	 * Returns the camera model
+	 *
+	 * @return string
 	 */
-	public function model(): string|null
+	public function model(): ?string
 	{
 		return $this->model;
 	}
 
 	/**
 	 * Converts the object into a nicely readable array
+	 *
+	 * @return array
 	 */
 	public function toArray(): array
 	{
@@ -60,6 +73,8 @@ class Camera
 
 	/**
 	 * Returns the full make + model name
+	 *
+	 * @return string
 	 */
 	public function __toString(): string
 	{
@@ -68,6 +83,8 @@ class Camera
 
 	/**
 	 * Improved `var_dump` output
+	 *
+	 * @return array
 	 */
 	public function __debugInfo(): array
 	{

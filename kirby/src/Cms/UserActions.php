@@ -11,7 +11,6 @@ use Kirby\Filesystem\F;
 use Kirby\Form\Form;
 use Kirby\Http\Idn;
 use Kirby\Toolkit\Str;
-use SensitiveParameter;
 use Throwable;
 
 /**
@@ -103,11 +102,12 @@ trait UserActions
 
 	/**
 	 * Changes the user password
+	 *
+	 * @param string $password
+	 * @return static
 	 */
-	public function changePassword(
-		#[SensitiveParameter]
-		string $password
-	): static {
+	public function changePassword(string $password)
+	{
 		return $this->commit('changePassword', ['user' => $this, 'password' => $password], function ($user, $password) {
 			$user = $user->clone([
 				'password' => $password = User::hashPassword($password)
@@ -263,7 +263,7 @@ trait UserActions
 
 				// we can't really test for a random match
 				// @codeCoverageIgnoreStart
-			} catch (Throwable) {
+			} catch (Throwable $e) {
 				$length++;
 			}
 		} while (true);
@@ -308,12 +308,12 @@ trait UserActions
 		$path = $this->root() . '/index.php';
 
 		if (is_file($path) === true) {
-			$credentials = F::load($path, allowOutput: false);
+			$credentials = F::load($path);
 
 			return is_array($credentials) === false ? [] : $credentials;
+		} else {
+			return [];
 		}
-
-		return [];
 	}
 
 	/**
@@ -379,11 +379,12 @@ trait UserActions
 
 	/**
 	 * Writes the password to disk
+	 *
+	 * @param string|null $password
+	 * @return bool
 	 */
-	protected function writePassword(
-		#[SensitiveParameter]
-		string $password = null
-	): bool {
+	protected function writePassword(string $password = null): bool
+	{
 		return F::write($this->root() . '/.htpasswd', $password);
 	}
 }

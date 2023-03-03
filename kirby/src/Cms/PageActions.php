@@ -13,8 +13,6 @@ use Kirby\Form\Form;
 use Kirby\Toolkit\A;
 use Kirby\Toolkit\I18n;
 use Kirby\Toolkit\Str;
-use Kirby\Uuid\Uuid;
-use Kirby\Uuid\Uuids;
 
 /**
  * PageActions
@@ -27,75 +25,6 @@ use Kirby\Uuid\Uuids;
  */
 trait PageActions
 {
-	/**
-	 * Adapts necessary modifications which page uuid, page slug and files uuid
-	 * of copy objects for single or multilang environments
-	 */
-	protected function adaptCopy(Page $copy, bool $files = false, bool $children = false): Page
-	{
-		if ($this->kirby()->multilang() === true) {
-			foreach ($this->kirby()->languages() as $language) {
-				// overwrite with new UUID for the page and files
-				// for default language (remove old, add new)
-				if (
-					Uuids::enabled() === true &&
-					$language->isDefault() === true
-				) {
-					$copy = $copy->save(['uuid' => Uuid::generate()], $language->code());
-
-					// regenerate UUIDs of page files
-					if ($files !== false) {
-						foreach ($copy->files() as $file) {
-							$file->save(['uuid' => Uuid::generate()], $language->code());
-						}
-					}
-
-					// regenerate UUIDs of all page children
-					if ($children !== false) {
-						foreach ($copy->index(true) as $child) {
-							// always adapt files of subpages as they are currently always copied;
-							// but don't adapt children because we already operate on the index
-							$this->adaptCopy($child, true);
-						}
-					}
-				}
-
-				// remove all translated slugs
-				if (
-					$language->isDefault() === false &&
-					$copy->translation($language)->exists() === true
-				) {
-					$copy = $copy->save(['slug' => null], $language->code());
-				}
-			}
-
-			return $copy;
-		}
-
-		// overwrite with new UUID for the page and files (remove old, add new)
-		if (Uuids::enabled() === true) {
-			$copy = $copy->save(['uuid' => Uuid::generate()]);
-
-			// regenerate UUIDs of page files
-			if ($files !== false) {
-				foreach ($copy->files() as $file) {
-					$file->save(['uuid' => Uuid::generate()]);
-				}
-			}
-
-			// regenerate UUIDs of all page children
-			if ($children !== false) {
-				foreach ($copy->index(true) as $child) {
-					// always adapt files of subpages as they are currently always copied;
-					// but don't adapt children because we already operate on the index
-					$this->adaptCopy($child, true);
-				}
-			}
-		}
-
-		return $copy;
-	}
-
 	/**
 	 * Changes the sorting number.
 	 * The sorting number must already be correct
@@ -137,7 +66,10 @@ trait PageActions
 			}
 
 			// overwrite the child in the parent page
-			static::updateParentCollections($newPage, 'set');
+			$newPage
+				->parentModel()
+				->children()
+				->set($newPage->id(), $newPage);
 
 			return $newPage;
 		});
@@ -159,8 +91,10 @@ trait PageActions
 		// in multi-language installations the slug for the non-default
 		// languages is stored in the text file. The changeSlugForLanguage
 		// method takes care of that.
-		if ($this->kirby()->language($languageCode)?->isDefault() === false) {
-			return $this->changeSlugForLanguage($slug, $languageCode);
+		if ($language = $this->kirby()->language($languageCode)) {
+			if ($language->isDefault() === false) {
+				return $this->changeSlugForLanguage($slug, $languageCode);
+			}
 		}
 
 		// if the slug stays exactly the same,
@@ -177,12 +111,11 @@ trait PageActions
 				'root'    => null
 			]);
 
-			// clear UUID cache recursively (for children and files as well)
-			$oldPage->uuid()?->clear(true);
-
 			if ($oldPage->exists() === true) {
 				// remove the lock of the old page
-				$oldPage->lock()?->remove();
+				if ($lock = $oldPage->lock()) {
+					$lock->remove();
+				}
 
 				// actually move stuff on disk
 				if (Dir::move($oldPage->root(), $newPage->root()) !== true) {
@@ -190,13 +123,17 @@ trait PageActions
 				}
 
 				// remove from the siblings
-				static::updateParentCollections($oldPage, 'remove');
+				$oldPage->parentModel()->children()->remove($oldPage);
 
 				Dir::remove($oldPage->mediaRoot());
 			}
 
 			// overwrite the new page in the parent collection
-			static::updateParentCollections($newPage, 'set');
+			if ($newPage->isDraft() === true) {
+				$newPage->parentModel()->drafts()->set($newPage->id(), $newPage);
+			} else {
+				$newPage->parentModel()->children()->set($newPage->id(), $newPage);
+			}
 
 			return $newPage;
 		});
@@ -223,19 +160,14 @@ trait PageActions
 			throw new InvalidArgumentException('Use the changeSlug method to change the slug for the default language');
 		}
 
-		$arguments = ['page' => $this, 'slug' => $slug, 'languageCode' => $language->code()];
+		$arguments = ['page' => $this, 'slug' => $slug, 'languageCode' => $languageCode];
 		return $this->commit('changeSlug', $arguments, function ($page, $slug, $languageCode) {
 			// remove the slug if it's the same as the folder name
 			if ($slug === $page->uid()) {
 				$slug = null;
 			}
 
-			$newPage = $page->save(['slug' => $slug], $languageCode);
-
-			// overwrite the updated page in the parent collection
-			static::updateParentCollections($newPage, 'set');
-
-			return $newPage;
+			return $page->save(['slug' => $slug], $languageCode);
 		});
 	}
 
@@ -252,12 +184,16 @@ trait PageActions
 	 */
 	public function changeStatus(string $status, int $position = null)
 	{
-		return match ($status) {
-			'draft'    => $this->changeStatusToDraft(),
-			'listed'   => $this->changeStatusToListed($position),
-			'unlisted' => $this->changeStatusToUnlisted(),
-			default    => throw new InvalidArgumentException('Invalid status: ' . $status)
-		};
+		switch ($status) {
+			case 'draft':
+				return $this->changeStatusToDraft();
+			case 'listed':
+				return $this->changeStatusToListed($position);
+			case 'unlisted':
+				return $this->changeStatusToUnlisted();
+			default:
+				throw new InvalidArgumentException('Invalid status: ' . $status);
+		}
 	}
 
 	/**
@@ -383,7 +319,11 @@ trait PageActions
 			}
 
 			// update the parent collection
-			static::updateParentCollections($page, 'set');
+			if ($page->isDraft() === true) {
+				$page->parentModel()->drafts()->set($page->id(), $page);
+			} else {
+				$page->parentModel()->children()->set($page->id(), $page);
+			}
 
 			return $page;
 		});
@@ -403,7 +343,11 @@ trait PageActions
 			$page = $page->save(['title' => $title], $languageCode);
 
 			// flush the parent cache to get children and drafts right
-			static::updateParentCollections($page, 'set');
+			if ($page->isDraft() === true) {
+				$page->parentModel()->drafts()->set($page->id(), $page);
+			} else {
+				$page->parentModel()->children()->set($page->id(), $page);
+			}
 
 			return $page;
 		});
@@ -503,11 +447,21 @@ trait PageActions
 
 		$copy = $parentModel->clone()->findPageOrDraft($slug);
 
-		// normalize copy object
-		$copy = $this->adaptCopy($copy, $files, $children);
+		// remove all translated slugs
+		if ($this->kirby()->multilang() === true) {
+			foreach ($this->kirby()->languages() as $language) {
+				if ($language->isDefault() === false && $copy->translation($language)->exists() === true) {
+					$copy = $copy->save(['slug' => null], $language->code());
+				}
+			}
+		}
 
 		// add copy to siblings
-		static::updateParentCollections($copy, 'append', $parentModel);
+		if ($isDraft === true) {
+			$parentModel->drafts()->append($copy->id(), $copy);
+		} else {
+			$parentModel->children()->append($copy->id(), $copy);
+		}
 
 		return $copy;
 	}
@@ -525,25 +479,20 @@ trait PageActions
 		$props['template'] = $props['model'] = strtolower($props['template'] ?? 'default');
 		$props['isDraft']  = ($props['draft'] ?? true);
 
-		// make sure that a UUID gets generated and
-		// added to content right away
-		$props['content'] ??= [];
-
-		if (Uuids::enabled() === true) {
-			$props['content']['uuid'] ??= Uuid::generate();
-		}
-
 		// create a temporary page object
 		$page = Page::factory($props);
 
 		// create a form for the page
-		$form = Form::for($page, ['values' => $props['content']]);
+		$form = Form::for($page, [
+			'values' => $props['content'] ?? []
+		]);
 
 		// inject the content
 		$page = $page->clone(['content' => $form->strings(true)]);
 
 		// run the hooks and creation action
 		$page = $page->commit('create', ['page' => $page, 'input' => $props], function ($page, $props) {
+
 			// always create pages in the default language
 			if ($page->kirby()->multilang() === true) {
 				$languageCode = $page->kirby()->defaultLanguage()->code();
@@ -555,7 +504,11 @@ trait PageActions
 			$page = $page->save($page->content()->toArray(), $languageCode);
 
 			// flush the parent cache to get children and drafts right
-			static::updateParentCollections($page, 'append');
+			if ($page->isDraft() === true) {
+				$page->parentModel()->drafts()->append($page->id(), $page);
+			} else {
+				$page->parentModel()->children()->append($page->id(), $page);
+			}
 
 			return $page;
 		});
@@ -620,7 +573,9 @@ trait PageActions
 					->count();
 
 				// default positioning at the end
-				$num ??= $max;
+				if ($num === null) {
+					$num = $max;
+				}
 
 				// avoid zeros or negative numbers
 				if ($num < 1) {
@@ -657,8 +612,6 @@ trait PageActions
 	public function delete(bool $force = false): bool
 	{
 		return $this->commit('delete', ['page' => $this, 'force' => $force], function ($page, $force) {
-			// clear UUID cache
-			$page->uuid()?->clear();
 
 			// delete all files individually
 			foreach ($page->files() as $file) {
@@ -672,6 +625,7 @@ trait PageActions
 
 			// actually remove the page from disc
 			if ($page->exists() === true) {
+
 				// delete all public media files
 				Dir::remove($page->mediaRoot());
 
@@ -689,9 +643,10 @@ trait PageActions
 				}
 			}
 
-			static::updateParentCollections($page, 'remove');
-
-			if ($page->isDraft() === false) {
+			if ($page->isDraft() === true) {
+				$page->parentModel()->drafts()->remove($page);
+			} else {
+				$page->parentModel()->children()->remove($page);
 				$page->resortSiblingsAfterUnlisting();
 			}
 
@@ -709,6 +664,7 @@ trait PageActions
 	 */
 	public function duplicate(string $slug = null, array $options = [])
 	{
+
 		// create the slug for the duplicate
 		$slug = Str::slug($slug ?? $this->slug() . '-' . Str::slug(I18n::translate('page.duplicate.appendix')));
 
@@ -766,14 +722,8 @@ trait PageActions
 		}
 
 		// remove the page from the parent drafts and add it to children
-		$parentModel = $page->parentModel();
-		$parentModel->drafts()->remove($page);
-		$parentModel->children()->append($page->id(), $page);
-
-		// update the childrenAndDrafts() cache if it is initialized
-		if ($parentModel->childrenAndDrafts !== null) {
-			$parentModel->childrenAndDrafts()->set($page->id(), $page);
-		}
+		$page->parentModel()->drafts()->remove($page);
+		$page->parentModel()->children()->append($page->id(), $page);
 
 		return $page;
 	}
@@ -784,14 +734,13 @@ trait PageActions
 	 */
 	public function purge()
 	{
-		$this->blueprint         = null;
-		$this->children          = null;
-		$this->childrenAndDrafts = null;
-		$this->content           = null;
-		$this->drafts            = null;
-		$this->files             = null;
-		$this->inventory         = null;
-		$this->translations      = null;
+		$this->blueprint    = null;
+		$this->children     = null;
+		$this->content      = null;
+		$this->drafts       = null;
+		$this->files        = null;
+		$this->inventory    = null;
+		$this->translations = null;
 
 		return $this;
 	}
@@ -832,14 +781,13 @@ trait PageActions
 		foreach ($sorted as $key => $id) {
 			if ($id === $this->id()) {
 				continue;
+			} elseif ($sibling = $siblings->get($id)) {
+				$sibling->changeNum($key + 1);
 			}
-
-			$siblings->get($id)?->changeNum($key + 1);
 		}
 
 		$parent = $this->parentModel();
 		$parent->children = $parent->children()->sort('num', 'asc');
-		$parent->childrenAndDrafts = null;
 
 		return true;
 	}
@@ -864,29 +812,9 @@ trait PageActions
 			}
 
 			$parent->children = $siblings->sort('num', 'asc');
-			$parent->childrenAndDrafts = null;
 		}
 
 		return true;
-	}
-
-	/**
-	 * Stores the content on disk
-	 *
-	 * @internal
-	 * @param array|null $data
-	 * @param string|null $languageCode
-	 * @param bool $overwrite
-	 * @return static
-	 */
-	public function save(array $data = null, string $languageCode = null, bool $overwrite = false)
-	{
-		$page = parent::save($data, $languageCode, $overwrite);
-
-		// overwrite the updated page in the parent collection
-		static::updateParentCollections($page, 'set');
-
-		return $page;
 	}
 
 	/**
@@ -917,14 +845,8 @@ trait PageActions
 		}
 
 		// remove the page from the parent children and add it to drafts
-		$parentModel = $page->parentModel();
-		$parentModel->children()->remove($page);
-		$parentModel->drafts()->append($page->id(), $page);
-
-		// update the childrenAndDrafts() cache if it is initialized
-		if ($parentModel->childrenAndDrafts !== null) {
-			$parentModel->childrenAndDrafts()->set($page->id(), $page);
-		}
+		$page->parentModel()->children()->remove($page);
+		$page->parentModel()->drafts()->append($page->id(), $page);
 
 		$page->resortSiblingsAfterUnlisting();
 
@@ -948,44 +870,10 @@ trait PageActions
 		$page = parent::update($input, $languageCode, $validate);
 
 		// if num is created from page content, update num on content update
-		if (
-			$page->isListed() === true &&
-			in_array($page->blueprint()->num(), ['zero', 'default']) === false
-		) {
+		if ($page->isListed() === true && in_array($page->blueprint()->num(), ['zero', 'default']) === false) {
 			$page = $page->changeNum($page->createNum());
 		}
 
-		// overwrite the updated page in the parent collection
-		static::updateParentCollections($page, 'set');
-
 		return $page;
-	}
-
-	/**
-	 * Updates parent collections with the new page object
-	 * after a page action
-	 *
-	 * @param \Kirby\Cms\Page $page
-	 * @param string $method Method to call on the parent collections
-	 * @param \Kirby\Cms\Page|null $parentMdel
-	 * @return void
-	 */
-	protected static function updateParentCollections($page, string $method, $parentModel = null): void
-	{
-		$parentModel ??= $page->parentModel();
-
-		// method arguments depending on the called method
-		$args = $method === 'remove' ? [$page] : [$page->id(), $page];
-
-		if ($page->isDraft() === true) {
-			$parentModel->drafts()->$method(...$args);
-		} else {
-			$parentModel->children()->$method(...$args);
-		}
-
-		// update the childrenAndDrafts() cache if it is initialized
-		if ($parentModel->childrenAndDrafts !== null) {
-			$parentModel->childrenAndDrafts()->$method(...$args);
-		}
 	}
 }

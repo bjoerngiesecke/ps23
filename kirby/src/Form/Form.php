@@ -2,7 +2,6 @@
 
 namespace Kirby\Form;
 
-use Closure;
 use Kirby\Cms\App;
 use Kirby\Cms\Model;
 use Kirby\Data\Data;
@@ -74,6 +73,7 @@ class Form
 		$this->values = [];
 
 		foreach ($fields as $name => $props) {
+
 			// inject stuff from the form constructor (model, etc.)
 			$props = array_merge($inject, $props);
 
@@ -104,12 +104,15 @@ class Form
 		}
 
 		if ($strict !== true) {
+
 			// use all given values, no matter
 			// if there's a field or not.
 			$input = array_merge($values, $input);
 
 			foreach ($input as $key => $value) {
-				$this->values[$key] ??= $value;
+				if (isset($this->values[$key]) === false) {
+					$this->values[$key] = $value;
+				}
 			}
 		}
 	}
@@ -259,7 +262,7 @@ class Form
 
 		// convert closures to values
 		foreach ($values as $key => $value) {
-			if ($value instanceof Closure) {
+			if (is_a($value, 'Closure') === true) {
 				$values[$key] = $value($original[$key] ?? null);
 			}
 		}
@@ -315,7 +318,7 @@ class Form
 	 * @param string|null $language
 	 * @return array
 	 */
-	protected static function prepareFieldsForLanguage(array $fields, string|null $language = null): array
+	protected static function prepareFieldsForLanguage(array $fields, ?string $language = null): array
 	{
 		$kirby = App::instance(null, true);
 
@@ -324,7 +327,9 @@ class Form
 			return $fields;
 		}
 
-		$language ??= $kirby->language()->code();
+		if ($language === null) {
+			$language = $kirby->language()->code();
+		}
 
 		if ($language !== $kirby->defaultLanguage()->code()) {
 			foreach ($fields as $fieldName => $fieldProps) {

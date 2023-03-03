@@ -20,13 +20,17 @@ class Body
 
 	/**
 	 * The raw body content
+	 *
+	 * @var string|array
 	 */
-	protected string|array|null $contents;
+	protected $contents;
 
 	/**
 	 * The parsed content as array
+	 *
+	 * @var array
 	 */
-	protected array|null $data = null;
+	protected $data;
 
 	/**
 	 * Creates a new request body object.
@@ -34,8 +38,10 @@ class Body
 	 * If null is being passed, the class will
 	 * fetch the body either from the $_POST global
 	 * or from php://input.
+	 *
+	 * @param array|string|null $contents
 	 */
-	public function __construct(array|string|null $contents = null)
+	public function __construct($contents = null)
 	{
 		$this->contents = $contents;
 	}
@@ -43,18 +49,20 @@ class Body
 	/**
 	 * Fetches the raw contents for the body
 	 * or uses the passed contents.
+	 *
+	 * @return string|array
 	 */
-	public function contents(): string|array
+	public function contents()
 	{
-		if ($this->contents !== null) {
-			return $this->contents;
+		if ($this->contents === null) {
+			if (empty($_POST) === false) {
+				$this->contents = $_POST;
+			} else {
+				$this->contents = file_get_contents('php://input');
+			}
 		}
 
-		if (empty($_POST) === false) {
-			return $this->contents = $_POST;
-		}
-
-		return $this->contents = file_get_contents('php://input');
+		return $this->contents;
 	}
 
 	/**
@@ -63,6 +71,8 @@ class Body
 	 * the body with the json decoder first and
 	 * then run parse_str to get some results
 	 * if the json decoder failed.
+	 *
+	 * @return array
 	 */
 	public function data(): array
 	{
@@ -99,6 +109,8 @@ class Body
 	/**
 	 * Converts the data array back
 	 * to a http query string
+	 *
+	 * @return string
 	 */
 	public function toString(): string
 	{
@@ -107,6 +119,8 @@ class Body
 
 	/**
 	 * Magic string converter
+	 *
+	 * @return string
 	 */
 	public function __toString(): string
 	{

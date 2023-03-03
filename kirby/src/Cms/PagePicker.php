@@ -86,7 +86,11 @@ class PagePicker extends Picker
 			return $this->parent();
 		}
 
-		return $this->items()?->parent();
+		if ($items = $this->items()) {
+			return $items->parent();
+		}
+
+		return null;
 	}
 
 	/**
@@ -97,14 +101,14 @@ class PagePicker extends Picker
 	 * @param \Kirby\Cms\Site|\Kirby\Cms\Page|null
 	 * @return array|null
 	 */
-	public function modelToArray($model = null): array|null
+	public function modelToArray($model = null): ?array
 	{
 		if ($model === null) {
 			return null;
 		}
 
 		// the selected model is the site. there's nothing above
-		if ($model instanceof Site) {
+		if (is_a($model, 'Kirby\Cms\Site') === true) {
 			return [
 				'id'     => null,
 				'parent' => null,
@@ -196,13 +200,13 @@ class PagePicker extends Picker
 		// help mitigate some typical query usage issues
 		// by converting site and page objects to proper
 		// pages by returning their children
-		$items = match (true) {
-			$items instanceof Site,
-			$items instanceof Page  => $items->children(),
-			$items instanceof Pages => $items,
-
-			default => throw new InvalidArgumentException('Your query must return a set of pages')
-		};
+		if (is_a($items, 'Kirby\Cms\Site') === true) {
+			$items = $items->children();
+		} elseif (is_a($items, 'Kirby\Cms\Page') === true) {
+			$items = $items->children();
+		} elseif (is_a($items, 'Kirby\Cms\Pages') === false) {
+			throw new InvalidArgumentException('Your query must return a set of pages');
+		}
 
 		return $this->itemsForQuery = $items;
 	}
@@ -234,7 +238,11 @@ class PagePicker extends Picker
 	public function start()
 	{
 		if (empty($this->options['query']) === false) {
-			return $this->itemsForQuery()?->parent() ?? $this->site;
+			if ($items = $this->itemsForQuery()) {
+				return $items->parent();
+			}
+
+			return $this->site;
 		}
 
 		return $this->site;

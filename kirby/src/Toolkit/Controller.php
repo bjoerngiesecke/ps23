@@ -19,18 +19,24 @@ use ReflectionFunction;
  */
 class Controller
 {
-	public function __construct(protected Closure $function)
+	protected $function;
+
+	public function __construct(Closure $function)
 	{
+		$this->function = $function;
 	}
 
 	public function arguments(array $data = []): array
 	{
 		$info = new ReflectionFunction($this->function);
+		$args = [];
 
-		return A::map(
-			$info->getParameters(),
-			fn ($parameter) => $data[$parameter->getName()] ?? null
-		);
+		foreach ($info->getParameters() as $parameter) {
+			$name = $parameter->getName();
+			$args[] = $data[$name] ?? null;
+		}
+
+		return $args;
 	}
 
 	public function call($bind = null, $data = [])
@@ -38,7 +44,7 @@ class Controller
 		$args = $this->arguments($data);
 
 		if ($bind === null) {
-			return ($this->function)(...$args);
+			return call_user_func($this->function, ...$args);
 		}
 
 		return $this->function->call($bind, ...$args);
@@ -52,7 +58,7 @@ class Controller
 
 		$function = F::load($file);
 
-		if ($function instanceof Closure === false) {
+		if (is_a($function, 'Closure') === false) {
 			return null;
 		}
 

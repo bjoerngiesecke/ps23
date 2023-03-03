@@ -1,0 +1,25 @@
+Worktype: 
+
+----
+
+Imagetype: 
+
+----
+
+Materials: Paraffin Wax, Marblecast, Plaster, Polyurethane Resin, Cardboard, 3D Printed Filament, MDF
+
+----
+
+Collaborators: 
+
+----
+
+Filetype: img
+
+----
+
+Keywords: Set
+
+----
+
+Sort: 1

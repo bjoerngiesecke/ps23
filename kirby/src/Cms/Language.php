@@ -212,15 +212,6 @@ class Language extends Model
 
 		$language = new static($props);
 
-		// trigger before hook
-		$kirby->trigger(
-			'language.create:before',
-			[
-				'input'    => $props,
-				'language' => $language
-			]
-		);
-
 		// validate the new language
 		LanguageRules::create($language);
 
@@ -231,16 +222,7 @@ class Language extends Model
 		}
 
 		// update the main languages collection in the app instance
-		$kirby->languages(false)->append($language->code(), $language);
-
-		// trigger after hook
-		$kirby->trigger(
-			'language.create:after',
-			[
-				'input'    => $props,
-				'language' => $language
-			]
-		);
+		App::instance()->languages(false)->append($language->code(), $language);
 
 		return $language;
 	}
@@ -260,11 +242,6 @@ class Language extends Model
 		$code      = $this->code();
 		$isLast    = $languages->count() === 1;
 
-		// trigger before hook
-		$kirby->trigger('language.delete:before', [
-			'language' => $this
-		]);
-
 		if (F::remove($this->root()) !== true) {
 			throw new Exception('The language could not be deleted');
 		}
@@ -277,11 +254,6 @@ class Language extends Model
 
 		// get the original language collection and remove the current language
 		$kirby->languages(false)->remove($code);
-
-		// trigger after hook
-		$kirby->trigger('language.delete:after', [
-			'language' => $this
-		]);
 
 		return true;
 	}
@@ -378,7 +350,7 @@ class Language extends Model
 
 		try {
 			return Data::read($file);
-		} catch (\Exception) {
+		} catch (\Exception $e) {
 			return [];
 		}
 	}
@@ -393,9 +365,9 @@ class Language extends Model
 	{
 		if ($category !== null) {
 			return $this->locale[$category] ?? $this->locale[LC_ALL] ?? null;
+		} else {
+			return $this->locale;
 		}
-
-		return $this->locale;
 	}
 
 	/**
@@ -484,7 +456,7 @@ class Language extends Model
 	{
 		try {
 			$existingData = Data::read($this->root());
-		} catch (Throwable) {
+		} catch (Throwable $e) {
 			$existingData = [];
 		}
 
@@ -658,8 +630,12 @@ class Language extends Model
 	 */
 	public function url(): string
 	{
-		$url   = $this->url;
-		$url ??= '/' . $this->code;
+		$url = $this->url;
+
+		if ($url === null) {
+			$url = '/' . $this->code;
+		}
+
 		return Url::makeAbsolute($url, $this->kirby()->url());
 	}
 
@@ -684,15 +660,11 @@ class Language extends Model
 		// validate the updated language
 		LanguageRules::update($updated);
 
-		// trigger before hook
-		$kirby->trigger('language.update:before', [
-			'language' => $this,
-			'input' => $props
-		]);
-
 		// convert the current default to a non-default language
 		if ($updated->isDefault() === true) {
-			$kirby->defaultLanguage()?->clone(['default' => false])->save();
+			if ($oldDefault = $kirby->defaultLanguage()) {
+				$oldDefault->clone(['default' => false])->save();
+			}
 
 			$code = $this->code();
 			$site = $kirby->site();
@@ -716,13 +688,6 @@ class Language extends Model
 
 		// make sure the language is also updated in the Kirby language collection
 		App::instance()->languages(false)->set($language->code(), $language);
-
-		// trigger after hook
-		$kirby->trigger('language.update:after', [
-			'newLanguage' => $language,
-			'oldLanguage' => $this,
-			'input' => $props
-		]);
 
 		return $language;
 	}

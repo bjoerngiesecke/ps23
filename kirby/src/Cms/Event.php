@@ -120,7 +120,7 @@ class Event
 	 *
 	 * @return string|null
 	 */
-	public function action(): string|null
+	public function action(): ?string
 	{
 		return $this->action;
 	}
@@ -133,7 +133,11 @@ class Event
 	 */
 	public function argument(string $name)
 	{
-		return $this->arguments[$name] ?? null;
+		if (isset($this->arguments[$name]) === true) {
+			return $this->arguments[$name];
+		}
+
+		return null;
 	}
 
 	/**
@@ -154,7 +158,7 @@ class Event
 	 * @param \Closure $hook
 	 * @return mixed
 	 */
-	public function call(object|null $bind, Closure $hook)
+	public function call(?object $bind, Closure $hook)
 	{
 		// collect the list of possible hook arguments
 		$data = $this->arguments();
@@ -200,9 +204,7 @@ class Event
 				'*:' . $this->state,
 				'*'
 			];
-		}
-
-		if ($this->state !== null) {
+		} elseif ($this->state !== null) {
 			// event without action: $type:$state
 
 			return [
@@ -210,9 +212,7 @@ class Event
 				'*:' . $this->state,
 				'*'
 			];
-		}
-
-		if ($this->action !== null) {
+		} elseif ($this->action !== null) {
 			// event without state: $type.$action
 
 			return [
@@ -220,10 +220,11 @@ class Event
 				'*.' . $this->action,
 				'*'
 			];
-		}
+		} else {
+			// event with a simple name
 
-		// event with a simple name
-		return ['*'];
+			return ['*'];
+		}
 	}
 
 	/**
@@ -231,7 +232,7 @@ class Event
 	 *
 	 * @return string|null
 	 */
-	public function state(): string|null
+	public function state(): ?string
 	{
 		return $this->state;
 	}

@@ -79,16 +79,18 @@ return [
 
 			if ($this->requestMethod() === 'GET') {
 				return $pages->search($this->requestQuery('q'));
+			} else {
+				return $pages->query($this->requestBody());
 			}
-
-			return $pages->query($this->requestBody());
 		}
 	],
 	[
 		'pattern' => 'site/sections/(:any)',
 		'method'  => 'GET',
 		'action'  => function (string $sectionName) {
-			return $this->site()->blueprint()->section($sectionName)?->toResponse();
+			if ($section = $this->site()->blueprint()->section($sectionName)) {
+				return $section->toResponse();
+			}
 		}
 	],
 	[

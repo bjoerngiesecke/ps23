@@ -46,7 +46,7 @@ class Structure extends Collection
 	 */
 	public function __set(string $id, $props): void
 	{
-		if ($props instanceof StructureObject) {
+		if (is_a($props, 'Kirby\Cms\StructureObject') === true) {
 			$object = $props;
 		} else {
 			if (is_array($props) === false) {

@@ -3,7 +3,6 @@
 use Kirby\Cms\Html;
 use Kirby\Cms\Url;
 use Kirby\Toolkit\Str;
-use Kirby\Uuid\Uuid;
 
 /**
  * Default KirbyTags definition
@@ -118,8 +117,11 @@ return [
 					return $img;
 				}
 
-				$link   = $tag->file($tag->link)?->url();
-				$link ??= $tag->link === 'self' ? $tag->src : $tag->link;
+				if ($link = $tag->file($tag->link)) {
+					$link = $link->url();
+				} else {
+					$link = $tag->link === 'self' ? $tag->src : $tag->link;
+				}
 
 				return Html::a($link, [$img], [
 					'rel'    => $tag->rel,
@@ -171,15 +173,6 @@ return [
 				$tag->value = Url::to($tag->value, $tag->lang);
 			}
 
-			// if value is a UUID, resolve to page/file model
-			// and use the URL as value
-			if (
-				Uuid::is($tag->value, 'page') === true ||
-				Uuid::is($tag->value, 'file') === true
-			) {
-				$tag->value = Uuid::for($tag->value)->model()->url();
-			}
-
 			return Html::a($tag->value, $tag->text, [
 				'rel'    => $tag->rel,
 				'class'  => $tag->class,
@@ -221,6 +214,7 @@ return [
 			'title'
 		],
 		'html' => function ($tag) {
+
 			// get and sanitize the username
 			$username = str_replace('@', '', $tag->value);
 
@@ -252,7 +246,6 @@ return [
 			'height',
 			'loop',
 			'muted',
-			'playsinline',
 			'poster',
 			'preload',
 			'style',
@@ -295,13 +288,12 @@ return [
 				// booleans: autoplay, controls, loop, muted
 				// strings : poster, preload
 				// for ex  : `autoplay` will not work if `false` is a `string` instead of a `boolean`
-				$attrs['autoplay']    = $autoplay = Str::toType($tag->autoplay, 'bool');
-				$attrs['controls']    = Str::toType($tag->controls ?? true, 'bool');
-				$attrs['loop']        = Str::toType($tag->loop, 'bool');
-				$attrs['muted']       = Str::toType($tag->muted ?? $autoplay, 'bool');
-				$attrs['playsinline'] = Str::toType($tag->playsinline ?? $autoplay, 'bool');
-				$attrs['poster']      = $tag->poster;
-				$attrs['preload']     = $tag->preload;
+				$attrs['autoplay'] = $autoplay = Str::toType($tag->autoplay, 'bool');
+				$attrs['controls'] = Str::toType($tag->controls ?? true, 'bool');
+				$attrs['loop']     = Str::toType($tag->loop, 'bool');
+				$attrs['muted']    = Str::toType($tag->muted ?? $autoplay, 'bool');
+				$attrs['poster']   = $tag->poster;
+				$attrs['preload']  = $tag->preload;
 			}
 
 			// handles local and remote video file

@@ -2,7 +2,6 @@
 
 namespace Kirby\Http;
 
-use Kirby\Toolkit\Obj;
 use Kirby\Toolkit\Str;
 
 /**
@@ -16,14 +15,19 @@ use Kirby\Toolkit\Str;
  * @copyright Bastian Allgeier
  * @license   https://opensource.org/licenses/MIT
  */
-class Params extends Obj
+class Params extends Query
 {
-	public static string|null $separator = null;
+	/**
+	 * @var null|string
+	 */
+	public static $separator;
 
 	/**
 	 * Creates a new params object
+	 *
+	 * @param array|string $params
 	 */
-	public function __construct(array|string|null $params)
+	public function __construct($params)
 	{
 		if (is_string($params) === true) {
 			$params = static::extract($params)['params'];
@@ -34,8 +38,11 @@ class Params extends Obj
 
 	/**
 	 * Extract the params from a string or array
+	 *
+	 * @param string|array|null $path
+	 * @return array
 	 */
-	public static function extract(string|array|null $path = null): array
+	public static function extract($path = null): array
 	{
 		if (empty($path) === true) {
 			return [
@@ -66,7 +73,7 @@ class Params extends Obj
 				$paramValue = $paramParts[1] ?? null;
 
 				if ($paramKey !== null) {
-					$params[rawurldecode($paramKey)] = $paramValue ? rawurldecode($paramValue) : null;
+					$params[$paramKey] = $paramValue;
 				}
 
 				unset($path[$index]);
@@ -86,22 +93,14 @@ class Params extends Obj
 		];
 	}
 
-	public function isEmpty(): bool
-	{
-		return empty((array)$this) === true;
-	}
-
-	public function isNotEmpty(): bool
-	{
-		return empty((array)$this) === false;
-	}
-
 	/**
 	 * Returns the param separator according
 	 * to the operating system.
 	 *
 	 * Unix = ':'
 	 * Windows = ';'
+	 *
+	 * @return string
 	 */
 	public static function separator(): string
 	{
@@ -111,19 +110,27 @@ class Params extends Obj
 
 		if (DIRECTORY_SEPARATOR === '/') {
 			return static::$separator = ':';
+		} else {
+			return static::$separator = ';';
 		}
-
-		return static::$separator = ';';
 	}
 
 	/**
 	 * Converts the params object to a params string
 	 * which can then be used in the URL builder again
+	 *
+	 * @param bool $leadingSlash
+	 * @param bool $trailingSlash
+	 * @return string|null
+	 *
+	 * @todo The argument $leadingSlash is incompatible with
+	 *       Query::toString($questionMark = false); the Query class
+	 *       should be extracted into a common parent class for both
+	 *       Query and Params
+	 * @psalm-suppress ParamNameMismatch
 	 */
-	public function toString(
-		bool $leadingSlash = false,
-		bool $trailingSlash = false
-	): string {
+	public function toString($leadingSlash = false, $trailingSlash = false): string
+	{
 		if ($this->isEmpty() === true) {
 			return '';
 		}
@@ -133,7 +140,7 @@ class Params extends Obj
 
 		foreach ($this as $key => $value) {
 			if ($value !== null && $value !== '') {
-				$params[] = rawurlencode($key) . $separator . rawurlencode($value);
+				$params[] = $key . $separator . $value;
 			}
 		}
 
@@ -147,10 +154,5 @@ class Params extends Obj
 		$trailingSlash = $trailingSlash === true ? '/' : null;
 
 		return $leadingSlash . $params . $trailingSlash;
-	}
-
-	public function __toString(): string
-	{
-		return $this->toString();
 	}
 }

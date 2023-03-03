@@ -1,7 +1,6 @@
 <?php
 
 use Kirby\Toolkit\I18n;
-use Kirby\Toolkit\Str;
 
 return [
 	'props' => [
@@ -69,20 +68,11 @@ return [
 		},
 
 		/**
-		 * Whether to store UUID or ID in the
-		 * content file of the model
-		 *
-		 * @param string $store 'uuid'|'id'
-		 */
-		'store' => function (string $store = 'uuid') {
-			return Str::lower($store);
-		},
-
-		/**
 		 * Main text for each item
 		 */
 		'text' => function (string $text = null) {
 			return $text;
 		},
+
 	],
 ];

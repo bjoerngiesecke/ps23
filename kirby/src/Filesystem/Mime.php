@@ -61,7 +61,6 @@ class Mime
 		'mid'   => 'audio/midi',
 		'midi'  => 'audio/midi',
 		'mif'   => 'application/vnd.mif',
-		'mjs'   => 'text/javascript',
 		'mov'   => 'video/quicktime',
 		'movie' => 'video/x-sgi-movie',
 		'mp2'   => 'audio/mpeg',
@@ -134,20 +133,13 @@ class Mime
 			'text/plain' => [
 				'css'  => 'text/css',
 				'json' => 'application/json',
-				'mjs' => 'text/javascript',
 				'svg'  => ['Kirby\Filesystem\Mime', 'fromSvg'],
 			],
 			'text/x-asm' => [
 				'css' => 'text/css'
 			],
-			'text/x-java' => [
-				'mjs' => 'text/javascript',
-			],
 			'image/svg' => [
 				'svg' => 'image/svg+xml'
-			],
-			'application/octet-stream' => [
-				'mjs' => 'text/javascript'
 			]
 		];
 
@@ -170,7 +162,7 @@ class Mime
 	 * @param string $extension
 	 * @return string|null
 	 */
-	public static function fromExtension(string $extension): string|null
+	public static function fromExtension(string $extension): ?string
 	{
 		$mime = static::$types[$extension] ?? null;
 		return is_array($mime) === true ? array_shift($mime) : $mime;
@@ -312,8 +304,12 @@ class Mime
 
 	/**
 	 * Returns the MIME type of a file
+	 *
+	 * @param string $file
+	 * @param string $extension
+	 * @return string|false
 	 */
-	public static function type(string $file, string|null $extension = null): string|null
+	public static function type(string $file, string $extension = null)
 	{
 		// use the standard finfo extension
 		$mime = static::fromFileInfo($file);

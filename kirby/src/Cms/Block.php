@@ -22,7 +22,7 @@ class Block extends Item
 {
 	use HasMethods;
 
-	public const ITEMS_CLASS = Blocks::class;
+	public const ITEMS_CLASS = '\Kirby\Cms\Blocks';
 
 	/**
 	 * @var \Kirby\Cms\Content
@@ -157,7 +157,7 @@ class Block extends Item
 		if (empty($type) === false && $class = (static::$models[$type] ?? null)) {
 			$object = new $class($params);
 
-			if ($object instanceof self) {
+			if (is_a($object, 'Kirby\Cms\Block') === true) {
 				return $object;
 			}
 		}
@@ -166,7 +166,7 @@ class Block extends Item
 		if ($class = (static::$models['Kirby\Cms\Block'] ?? null)) {
 			$object = new $class($params);
 
-			if ($object instanceof self) {
+			if (is_a($object, 'Kirby\Cms\Block') === true) {
 				return $object;
 			}
 		}
@@ -203,16 +203,6 @@ class Block extends Item
 	public function isNotEmpty(): bool
 	{
 		return $this->isEmpty() === false;
-	}
-
-	/**
-	 * Returns the sibling collection that filtered by block status
-	 *
-	 * @return \Kirby\Cms\Collection
-	 */
-	protected function siblingsCollection()
-	{
-		return $this->siblings->filter('isHidden', $this->isHidden());
 	}
 
 	/**

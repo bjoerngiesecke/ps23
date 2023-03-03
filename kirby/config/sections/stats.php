@@ -47,12 +47,10 @@ return [
 					continue;
 				}
 
-				$info = $report['info'] ?? null;
-
 				$reports[] = [
 					'label' => I18n::translate($report['label'], $report['label']),
 					'value' => $value($report['value'] ?? null),
-					'info'  => $value(I18n::translate($info, $info)),
+					'info'  => $value($report['info'] ?? null),
 					'link'  => $value($report['link'] ?? null),
 					'theme' => $value($report['theme'] ?? null)
 				];

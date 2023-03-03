@@ -51,21 +51,18 @@ return [
 				$parent = $this->model();
 			}
 
-			if ($parent instanceof File) {
+			if (is_a($parent, 'Kirby\Cms\File') === true) {
 				$parent = $parent->parent();
 			}
 
 			return $api->upload(function ($source, $filename) use ($parent, $params, $map) {
-				$props = [
+				$file = $parent->createFile([
 					'source'   => $source,
 					'template' => $params['template'] ?? null,
 					'filename' => $filename,
-				];
+				]);
 
-				// move the source file from the temp dir
-				$file = $parent->createFile($props, true);
-
-				if ($file instanceof File === false) {
+				if (is_a($file, 'Kirby\Cms\File') === false) {
 					throw new Exception('The file could not be uploaded');
 				}
 

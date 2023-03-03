@@ -98,7 +98,7 @@ class Pagination extends BasePagination
 	 *
 	 * @return string|null
 	 */
-	public function firstPageUrl(): string|null
+	public function firstPageUrl(): ?string
 	{
 		return $this->pageUrl(1);
 	}
@@ -108,7 +108,7 @@ class Pagination extends BasePagination
 	 *
 	 * @return string|null
 	 */
-	public function lastPageUrl(): string|null
+	public function lastPageUrl(): ?string
 	{
 		return $this->pageUrl($this->lastPage());
 	}
@@ -119,7 +119,7 @@ class Pagination extends BasePagination
 	 *
 	 * @return string|null
 	 */
-	public function nextPageUrl(): string|null
+	public function nextPageUrl(): ?string
 	{
 		if ($page = $this->nextPage()) {
 			return $this->pageUrl($page);
@@ -136,7 +136,7 @@ class Pagination extends BasePagination
 	 * @param int|null $page
 	 * @return string|null
 	 */
-	public function pageUrl(int $page = null): string|null
+	public function pageUrl(int $page = null): ?string
 	{
 		if ($page === null) {
 			return $this->pageUrl($this->page());
@@ -168,7 +168,7 @@ class Pagination extends BasePagination
 	 *
 	 * @return string|null
 	 */
-	public function prevPageUrl(): string|null
+	public function prevPageUrl(): ?string
 	{
 		if ($page = $this->prevPage()) {
 			return $this->pageUrl($page);

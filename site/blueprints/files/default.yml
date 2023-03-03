@@ -1,0 +1,34 @@
+title: Project File
+sections:
+  content:
+    type: fields
+    fields:
+      materials:
+        label: Materials
+        type: tags
+        options: query
+        query: site.index.files.pluck("materials", ",", true)
+      keywords:
+        label: Keywords
+        type: tags
+        help: Cave, Entropy, Elevation, Fabrication, Output, Process, Prototype...
+        options: query
+        query: site.index.files.pluck("keywords", ",", true)
+      collaborators:
+        label: Collaborators
+        type: tags
+        options: query
+        query: site.index.files.pluck("collaborators", ",", true)
+      imageType:
+        label: Type of Image
+        type: tags
+        help: Axonometric, Detail, Drawing, Film, Map, Plan, Timeline...
+        options: query
+        query: site.index.files.pluck("imagetype", ",", true)
+      fileType:
+        label: Type of File
+        type: tags
+        help: img, dwg...
+        options: query
+        query: site.index.files.pluck("filetype", ",", true)
+

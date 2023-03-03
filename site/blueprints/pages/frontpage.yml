@@ -1,0 +1,20 @@
+title: Frontpage
+options:
+  changeSlug: true
+  changeStatus: true
+  changeTemplate: false
+  changeTitle: true
+  delete: false
+  duplicate: true
+  preview: true
+  update: true
+sections:
+  picture:
+    type: files
+    layout: cards
+    max: 20
+  content:
+    type: fields
+    fields:
+      about:
+        type: textarea

@@ -96,17 +96,9 @@ return [
 	'methods' => [
 		'columnsValues' => function (array $item, $model) {
 			$item['title'] = [
-				// override toSafeString() coming from `$item`
-				// because the table cells don't use v-html
-				'text' => $model->toString($this->text),
+				'text' => $item['text'],
 				'href' => $model->panel()->url(true)
 			];
-
-			if ($this->info) {
-				// override toSafeString() coming from `$item`
-				// because the table cells don't use v-html
-				$item['info'] = $model->toString($this->info);
-			}
 
 			foreach ($this->columns as $columnName => $column) {
 				// don't overwrite essential columns
@@ -115,7 +107,11 @@ return [
 				}
 
 				if (empty($column['value']) === false) {
-					$value = $model->toString($column['value']);
+					if ($column['type'] ?? false === 'html') {
+						$value = $model->toString($column['value']);
+					} else {
+						$value = $model->toSafeString($column['value']);
+					}
 				} else {
 					$value = $model->content()->get($column['id'] ?? $columnName)->value();
 				}

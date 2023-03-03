@@ -1,0 +1,25 @@
+Worktype: 
+
+----
+
+Imagetype: 
+
+----
+
+Materials: Plaster, Wood, Rope, Cardboard
+
+----
+
+Collaborators: Javier Martin de la Fuente
+
+----
+
+Filetype: img
+
+----
+
+Keywords: Installation
+
+----
+
+Sort: 1

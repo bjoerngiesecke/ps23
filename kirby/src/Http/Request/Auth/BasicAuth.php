@@ -4,7 +4,6 @@ namespace Kirby\Http\Request\Auth;
 
 use Kirby\Http\Request\Auth;
 use Kirby\Toolkit\Str;
-use SensitiveParameter;
 
 /**
  * HTTP basic authentication data
@@ -17,14 +16,26 @@ use SensitiveParameter;
  */
 class BasicAuth extends Auth
 {
-	protected string $credentials;
-	protected string|null $password;
-	protected string|null $username;
+	/**
+	 * @var string
+	 */
+	protected $credentials;
 
-	public function __construct(
-		#[SensitiveParameter]
-		string $data
-	) {
+	/**
+	 * @var string
+	 */
+	protected $password;
+
+	/**
+	 * @var string
+	 */
+	protected $username;
+
+	/**
+	 * @param string $token
+	 */
+	public function __construct(string $data)
+	{
 		parent::__construct($data);
 
 		$this->credentials = base64_decode($data);
@@ -34,6 +45,8 @@ class BasicAuth extends Auth
 
 	/**
 	 * Returns the entire unencoded credentials string
+	 *
+	 * @return string
 	 */
 	public function credentials(): string
 	{
@@ -42,14 +55,18 @@ class BasicAuth extends Auth
 
 	/**
 	 * Returns the password
+	 *
+	 * @return string|null
 	 */
-	public function password(): string|null
+	public function password(): ?string
 	{
 		return $this->password;
 	}
 
 	/**
 	 * Returns the authentication type
+	 *
+	 * @return string
 	 */
 	public function type(): string
 	{
@@ -58,8 +75,10 @@ class BasicAuth extends Auth
 
 	/**
 	 * Returns the username
+	 *
+	 * @return string|null
 	 */
-	public function username(): string|null
+	public function username(): ?string
 	{
 		return $this->username;
 	}

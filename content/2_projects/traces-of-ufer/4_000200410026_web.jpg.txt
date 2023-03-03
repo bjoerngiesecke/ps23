@@ -1,0 +1,25 @@
+Worktype: 
+
+----
+
+Imagetype: Film
+
+----
+
+Materials: Cardboard, Plywood, Acrylic Paint
+
+----
+
+Collaborators: 
+
+----
+
+Filetype: img
+
+----
+
+Keywords: Process
+
+----
+
+Sort: 7

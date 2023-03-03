@@ -23,7 +23,10 @@ trait HasSiblings
 	 */
 	public function indexOf($collection = null): int
 	{
-		$collection ??= $this->siblingsCollection();
+		if ($collection === null) {
+			$collection = $this->siblingsCollection();
+		}
+
 		return $collection->indexOf($this);
 	}
 
@@ -36,7 +39,10 @@ trait HasSiblings
 	 */
 	public function next($collection = null)
 	{
-		$collection ??= $this->siblingsCollection();
+		if ($collection === null) {
+			$collection = $this->siblingsCollection();
+		}
+
 		return $collection->nth($this->indexOf($collection) + 1);
 	}
 
@@ -49,7 +55,10 @@ trait HasSiblings
 	 */
 	public function nextAll($collection = null)
 	{
-		$collection ??= $this->siblingsCollection();
+		if ($collection === null) {
+			$collection = $this->siblingsCollection();
+		}
+
 		return $collection->slice($this->indexOf($collection) + 1);
 	}
 
@@ -62,7 +71,10 @@ trait HasSiblings
 	 */
 	public function prev($collection = null)
 	{
-		$collection ??= $this->siblingsCollection();
+		if ($collection === null) {
+			$collection = $this->siblingsCollection();
+		}
+
 		return $collection->nth($this->indexOf($collection) - 1);
 	}
 
@@ -75,7 +87,10 @@ trait HasSiblings
 	 */
 	public function prevAll($collection = null)
 	{
-		$collection ??= $this->siblingsCollection();
+		if ($collection === null) {
+			$collection = $this->siblingsCollection();
+		}
+
 		return $collection->slice(0, $this->indexOf($collection));
 	}
 
@@ -129,7 +144,10 @@ trait HasSiblings
 	 */
 	public function isFirst($collection = null): bool
 	{
-		$collection ??= $this->siblingsCollection();
+		if ($collection === null) {
+			$collection = $this->siblingsCollection();
+		}
+
 		return $collection->first()->is($this);
 	}
 
@@ -142,7 +160,10 @@ trait HasSiblings
 	 */
 	public function isLast($collection = null): bool
 	{
-		$collection ??= $this->siblingsCollection();
+		if ($collection === null) {
+			$collection = $this->siblingsCollection();
+		}
+
 		return $collection->last()->is($this);
 	}
 

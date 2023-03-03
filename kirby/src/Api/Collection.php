@@ -2,7 +2,6 @@
 
 namespace Kirby\Api;
 
-use Closure;
 use Exception;
 use Kirby\Toolkit\Str;
 
@@ -20,26 +19,48 @@ use Kirby\Toolkit\Str;
  */
 class Collection
 {
-	protected Api $api;
+	/**
+	 * @var \Kirby\Api\Api
+	 */
+	protected $api;
+
+	/**
+	 * @var mixed|null
+	 */
 	protected $data;
+
+	/**
+	 * @var mixed|null
+	 */
 	protected $model;
-	protected $select = null;
+
+	/**
+	 * @var mixed|null
+	 */
+	protected $select;
+
+	/**
+	 * @var mixed|null
+	 */
 	protected $view;
 
 	/**
 	 * Collection constructor
 	 *
+	 * @param \Kirby\Api\Api $api
+	 * @param mixed|null $data
+	 * @param array $schema
 	 * @throws \Exception
 	 */
 	public function __construct(Api $api, $data, array $schema)
 	{
-		$this->api    = $api;
-		$this->data   = $data;
-		$this->model  = $schema['model'] ?? null;
-		$this->view   = $schema['view'] ?? null;
+		$this->api   = $api;
+		$this->data  = $data;
+		$this->model = $schema['model'] ?? null;
+		$this->view  = $schema['view'] ?? null;
 
 		if ($data === null) {
-			if (($schema['default'] ?? null) instanceof Closure === false) {
+			if (is_a($schema['default'] ?? null, 'Closure') === false) {
 				throw new Exception('Missing collection data');
 			}
 
@@ -48,17 +69,18 @@ class Collection
 
 		if (
 			isset($schema['type']) === true &&
-			$this->data instanceof $schema['type'] === false
+			is_a($this->data, $schema['type']) === false
 		) {
 			throw new Exception('Invalid collection type');
 		}
 	}
 
 	/**
+	 * @param string|array|null $keys
 	 * @return $this
 	 * @throws \Exception
 	 */
-	public function select($keys = null): static
+	public function select($keys = null)
 	{
 		if ($keys === false) {
 			return $this;
@@ -77,6 +99,7 @@ class Collection
 	}
 
 	/**
+	 * @return array
 	 * @throws \Kirby\Exception\NotFoundException
 	 * @throws \Exception
 	 */
@@ -102,6 +125,7 @@ class Collection
 	}
 
 	/**
+	 * @return array
 	 * @throws \Kirby\Exception\NotFoundException
 	 * @throws \Exception
 	 */
@@ -143,9 +167,10 @@ class Collection
 	}
 
 	/**
+	 * @param string $view
 	 * @return $this
 	 */
-	public function view(string $view): static
+	public function view(string $view)
 	{
 		$this->view = $view;
 		return $this;

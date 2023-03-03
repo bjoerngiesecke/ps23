@@ -20,6 +20,8 @@ class Redirect extends Exception
 {
 	/**
 	 * Returns the HTTP code for the redirect
+	 *
+	 * @return int
 	 */
 	public function code(): int
 	{
@@ -34,6 +36,8 @@ class Redirect extends Exception
 
 	/**
 	 * Returns the URL for the redirect
+	 *
+	 * @return string
 	 */
 	public function location(): string
 	{

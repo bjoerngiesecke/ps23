@@ -1,0 +1,21 @@
+Materials: Roundwood, Steel
+
+----
+
+Keywords: Prosthetic, Set
+
+----
+
+Collaborators: 
+
+----
+
+Imagetype: Detail
+
+----
+
+Filetype: img
+
+----
+
+Sort: 6

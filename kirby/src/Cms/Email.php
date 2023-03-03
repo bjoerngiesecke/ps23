@@ -49,10 +49,14 @@ class Email
 		$this->props = array_merge($preset, $props);
 
 		// add transport settings
-		$this->props['transport'] ??= $this->options['transport'] ?? [];
+		if (isset($this->props['transport']) === false) {
+			$this->props['transport'] = $this->options['transport'] ?? [];
+		}
 
 		// add predefined beforeSend option
-		$this->props['beforeSend'] ??= $this->options['beforeSend'] ?? null;
+		if (isset($this->props['beforeSend']) === false) {
+			$this->props['beforeSend'] = $this->options['beforeSend'] ?? null;
+		}
 
 		// transform model objects to values
 		$this->transformUserSingle('from', 'fromName');
@@ -102,6 +106,7 @@ class Email
 	protected function template(): void
 	{
 		if (isset($this->props['template']) === true) {
+
 			// prepare data to be passed to template
 			$data = $this->props['data'] ?? [];
 
@@ -118,7 +123,7 @@ class Email
 					$this->props['body']['text'] = $text->render($data);
 				}
 
-			// fallback to single email text template
+				// fallback to single email text template
 			} elseif ($text->exists()) {
 				$this->props['body'] = $text->render($data);
 			} else {
@@ -132,7 +137,7 @@ class Email
 	 *
 	 * @param string $name Template name
 	 * @param string|null $type `html` or `text`
-	 * @return \Kirby\Template\Template
+	 * @return \Kirby\Cms\Template
 	 */
 	protected function getTemplate(string $name, string $type = null)
 	{
@@ -189,7 +194,7 @@ class Email
 				} else {
 					$result[] = $item;
 				}
-			} elseif ($item instanceof $class) {
+			} elseif (is_a($item, $class) === true) {
 				// value is a model object, get value through content method(s)
 				if ($contentKey !== null) {
 					$result[(string)$item->$contentKey()] = (string)$item->$contentValue();
@@ -231,7 +236,9 @@ class Email
 		$this->props[$addressProp] = $address;
 
 		// only use the name from the user if no custom name was set
-		$this->props[$nameProp] ??= $name;
+		if (isset($this->props[$nameProp]) === false || $this->props[$nameProp] === null) {
+			$this->props[$nameProp] = $name;
+		}
 	}
 
 	/**

@@ -2,7 +2,6 @@
 
 namespace Kirby\Cms;
 
-use Kirby\Cache\Cache;
 use Kirby\Cache\NullCache;
 use Kirby\Exception\InvalidArgumentException;
 
@@ -44,7 +43,7 @@ trait AppCaches
 
 		if (array_key_exists($type, $types) === false) {
 			throw new InvalidArgumentException([
-				'key'  => 'cache.type.invalid',
+				'key'  => 'app.invalid.cacheType',
 				'data' => ['type' => $type]
 			]);
 		}
@@ -55,9 +54,9 @@ trait AppCaches
 		$cache = new $className($options);
 
 		// check if it is a usable cache object
-		if ($cache instanceof Cache === false) {
+		if (is_a($cache, 'Kirby\Cache\Cache') !== true) {
 			throw new InvalidArgumentException([
-				'key'  => 'cache.type.invalid',
+				'key'  => 'app.invalid.cacheType',
 				'data' => ['type' => $type]
 			]);
 		}
@@ -73,8 +72,7 @@ trait AppCaches
 	 */
 	protected function cacheOptions(string $key): array
 	{
-		$options   = $this->option($this->cacheOptionsKey($key), null);
-		$options ??= $this->core()->caches()[$key] ?? false;
+		$options = $this->option($this->cacheOptionsKey($key), false);
 
 		if ($options === false) {
 			return [
@@ -82,10 +80,9 @@ trait AppCaches
 			];
 		}
 
-		$prefix =
-			str_replace(['/', ':'], '_', $this->system()->indexUrl()) .
-			'/' .
-			str_replace('.', '/', $key);
+		$prefix = str_replace(['/', ':'], '_', $this->system()->indexUrl()) .
+				  '/' .
+				  str_replace('.', '/', $key);
 
 		$defaults = [
 			'active'    => true,
@@ -97,9 +94,9 @@ trait AppCaches
 
 		if ($options === true) {
 			return $defaults;
+		} else {
+			return array_merge($defaults, $options);
 		}
-
-		return array_merge($defaults, $options);
 	}
 
 	/**

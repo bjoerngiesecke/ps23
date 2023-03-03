@@ -17,7 +17,7 @@ use Kirby\Toolkit\Str;
  */
 class Path extends Collection
 {
-	public function __construct(string|array|null $items)
+	public function __construct($items)
 	{
 		if (is_string($items) === true) {
 			$items = Str::split($items, '/');
@@ -31,10 +31,8 @@ class Path extends Collection
 		return $this->toString();
 	}
 
-	public function toString(
-		bool $leadingSlash = false,
-		bool $trailingSlash = false
-	): string {
+	public function toString(bool $leadingSlash = false, bool $trailingSlash = false): string
+	{
 		if (empty($this->data) === true) {
 			return '';
 		}

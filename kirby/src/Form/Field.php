@@ -2,7 +2,6 @@
 
 namespace Kirby\Form;
 
-use Closure;
 use Exception;
 use Kirby\Exception\InvalidArgumentException;
 use Kirby\Toolkit\A;
@@ -62,10 +61,7 @@ class Field extends Component
 	public function __construct(string $type, array $attrs = [], ?Fields $formFields = null)
 	{
 		if (isset(static::$types[$type]) === false) {
-			throw new InvalidArgumentException([
-				'key'  => 'field.type.missing',
-				'data' => ['name' => $attrs['name'] ?? '-', 'type' => $type]
-			]);
+			throw new InvalidArgumentException('The field type "' . $type . '" does not exist');
 		}
 
 		if (isset($attrs['model']) === false) {
@@ -90,7 +86,7 @@ class Field extends Component
 	{
 		if (
 			isset($this->options['api']) === true &&
-			$this->options['api'] instanceof Closure
+			is_a($this->options['api'], 'Closure') === true
 		) {
 			return $this->options['api']->call($this);
 		}
@@ -116,7 +112,7 @@ class Field extends Component
 			return null;
 		}
 
-		if ($save instanceof Closure) {
+		if (is_a($save, 'Closure') === true) {
 			return $save->call($this, $value);
 		}
 
@@ -476,7 +472,7 @@ class Field extends Component
 				continue;
 			}
 
-			if ($validation instanceof Closure) {
+			if (is_a($validation, 'Closure') === true) {
 				try {
 					$validation->call($this, $this->value());
 				} catch (Exception $e) {

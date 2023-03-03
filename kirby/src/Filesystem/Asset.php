@@ -23,23 +23,29 @@ class Asset
 
 	/**
 	 * Relative file path
+	 *
+	 * @var string
 	 */
-	protected string|null $path = null;
+	protected $path;
 
 	/**
 	 * Creates a new Asset object for the given path.
+	 *
+	 * @param string $path
 	 */
 	public function __construct(string $path)
 	{
 		$this->setProperties([
 			'path' => dirname($path),
 			'root' => $this->kirby()->root('index') . '/' . $path,
-			'url'  => $this->kirby()->url('base') . '/' . $path
+			'url'  => $this->kirby()->url('index') . '/' . $path
 		]);
 	}
 
 	/**
 	 * Returns a unique id for the asset
+	 *
+	 * @return string
 	 */
 	public function id(): string
 	{
@@ -48,6 +54,8 @@ class Asset
 
 	/**
 	 * Create a unique media hash
+	 *
+	 * @return string
 	 */
 	public function mediaHash(): string
 	{
@@ -56,6 +64,8 @@ class Asset
 
 	/**
 	 * Returns the relative path starting at the media folder
+	 *
+	 * @return string
 	 */
 	public function mediaPath(): string
 	{
@@ -64,6 +74,8 @@ class Asset
 
 	/**
 	 * Returns the absolute path to the file in the public media folder
+	 *
+	 * @return string
 	 */
 	public function mediaRoot(): string
 	{
@@ -72,6 +84,8 @@ class Asset
 
 	/**
 	 * Returns the absolute Url to the file in the public media folder
+	 *
+	 * @return string
 	 */
 	public function mediaUrl(): string
 	{
@@ -81,6 +95,8 @@ class Asset
 	/**
 	 * Returns the path of the file from the web root,
 	 * excluding the filename
+	 *
+	 * @return string
 	 */
 	public function path(): string
 	{
@@ -90,9 +106,10 @@ class Asset
 	/**
 	 * Setter for the path
 	 *
+	 * @param string $path
 	 * @return $this
 	 */
-	protected function setPath(string $path): static
+	protected function setPath(string $path)
 	{
 		$this->path = $path === '.' ? '' : $path;
 		return $this;

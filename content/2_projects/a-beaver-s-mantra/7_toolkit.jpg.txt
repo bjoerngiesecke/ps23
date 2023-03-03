@@ -1,0 +1,21 @@
+Materials: Steel
+
+----
+
+Keywords: Fabrication, Prototype, Toolkit
+
+----
+
+Collaborators: 
+
+----
+
+Imagetype: Detail, Scan
+
+----
+
+Filetype: dwg
+
+----
+
+Sort: 8

@@ -81,7 +81,7 @@ class StructureObject extends Model
 	 */
 	public function content()
 	{
-		if ($this->content instanceof Content) {
+		if (is_a($this->content, 'Kirby\Cms\Content') === true) {
 			return $this->content;
 		}
 
@@ -110,7 +110,7 @@ class StructureObject extends Model
 	 */
 	public function is($structure): bool
 	{
-		if ($structure instanceof self === false) {
+		if (is_a($structure, 'Kirby\Cms\StructureObject') === false) {
 			return false;
 		}
 

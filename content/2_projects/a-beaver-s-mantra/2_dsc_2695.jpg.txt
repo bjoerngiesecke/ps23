@@ -1,0 +1,21 @@
+Materials: Roundwood, Steel
+
+----
+
+Keywords: Pedestal, Prosthetic, Set, Toolkit
+
+----
+
+Collaborators: Romain Odin Lepoutre
+
+----
+
+Imagetype: 
+
+----
+
+Filetype: img
+
+----
+
+Sort: 3

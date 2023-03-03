@@ -19,8 +19,9 @@ class Cookie
 {
 	/**
 	 * Key to use for cookie signing
+	 * @var string
 	 */
-	public static string $key = 'KirbyHttpCookieKey';
+	public static $key = 'KirbyHttpCookieKey';
 
 	/**
 	 * Set a new cookie
@@ -67,20 +68,19 @@ class Cookie
 	 * Calculates the lifetime for a cookie
 	 *
 	 * @param int $minutes Number of minutes or timestamp
+	 * @return int
 	 */
 	public static function lifetime(int $minutes): int
 	{
 		if ($minutes > 1000000000) {
 			// absolute timestamp
 			return $minutes;
-		}
-
-		if ($minutes > 0) {
+		} elseif ($minutes > 0) {
 			// minutes from now
 			return time() + ($minutes * 60);
+		} else {
+			return 0;
 		}
-
-		return 0;
 	}
 
 	/**
@@ -120,9 +120,9 @@ class Cookie
 	 * @param string|null $key The name of the cookie
 	 * @param string|null $default The default value, which should be returned
 	 *                             if the cookie has not been found
-	 * @return string|array|null The found value
+	 * @return mixed The found value
 	 */
-	public static function get(string|null $key = null, string|null $default = null): string|array|null
+	public static function get(string $key = null, string $default = null)
 	{
 		if ($key === null) {
 			return $_COOKIE;
@@ -137,6 +137,9 @@ class Cookie
 
 	/**
 	 * Checks if a cookie exists
+	 *
+	 * @param string $key
+	 * @return bool
 	 */
 	public static function exists(string $key): bool
 	{
@@ -146,6 +149,9 @@ class Cookie
 	/**
 	 * Creates a HMAC for the cookie value
 	 * Used as a cookie signature to prevent easy tampering with cookie data
+	 *
+	 * @param string $value
+	 * @return string
 	 */
 	protected static function hmac(string $value): string
 	{
@@ -155,8 +161,11 @@ class Cookie
 	/**
 	 * Parses the hashed value from a cookie
 	 * and tries to extract the value
+	 *
+	 * @param string $string
+	 * @return mixed
 	 */
-	protected static function parse(string $string): string|null
+	protected static function parse(string $string)
 	{
 		// if no hash-value separator is present, we can't parse the value
 		if (strpos($string, '+') === false) {
@@ -169,7 +178,7 @@ class Cookie
 
 		// if the hash or the value is missing at all return null
 		// $value can be an empty string, $hash can't be!
-		if ($hash === '') {
+		if (!is_string($hash) || $hash === '' || !is_string($value)) {
 			return null;
 		}
 
@@ -198,7 +207,7 @@ class Cookie
 	 */
 	public static function remove(string $key): bool
 	{
-		if (isset($_COOKIE[$key]) === true) {
+		if (isset($_COOKIE[$key])) {
 			unset($_COOKIE[$key]);
 			return setcookie($key, '', 1, '/') && setcookie($key, false);
 		}
@@ -212,11 +221,17 @@ class Cookie
 	 * this ensures that the response is only cached for visitors who don't
 	 * have this cookie set;
 	 * https://github.com/getkirby/kirby/issues/4423#issuecomment-1166300526
+	 *
+	 * @param string $key
+	 * @return void
 	 */
 	protected static function trackUsage(string $key): void
 	{
 		// lazily request the instance for non-CMS use cases
 		$kirby = App::instance(null, true);
-		$kirby?->response()->usesCookie($key);
+
+		if ($kirby) {
+			$kirby->response()->usesCookie($key);
+		}
 	}
 }

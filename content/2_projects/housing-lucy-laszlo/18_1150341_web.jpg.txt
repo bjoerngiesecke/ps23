@@ -1,0 +1,25 @@
+Worktype: 
+
+----
+
+Imagetype: 
+
+----
+
+Materials: Cement, Epoxy Resin, Wood Residue, PVC Pipe
+
+----
+
+Collaborators: 
+
+----
+
+Filetype: img
+
+----
+
+Keywords: Process, Sculpture
+
+----
+
+Sort: 12

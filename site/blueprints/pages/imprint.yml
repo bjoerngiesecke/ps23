@@ -1,0 +1,17 @@
+title: Imprint
+options:
+  changeSlug: true
+  changeStatus: true
+  changeTemplate: false
+  changeTitle: true
+  delete: false
+  duplicate: false
+  preview: true
+  update: true
+sections:
+  content:
+    type: fields
+    fields:
+      text:
+        type: writer
+        nodes: false

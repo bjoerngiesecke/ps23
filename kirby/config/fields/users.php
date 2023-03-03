@@ -96,7 +96,7 @@ return [
 		];
 	},
 	'save' => function ($value = null) {
-		return A::pluck($value, $this->store);
+		return A::pluck($value, 'id');
 	},
 	'validations' => [
 		'max',

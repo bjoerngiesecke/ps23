@@ -2,7 +2,6 @@
 
 namespace Kirby\Toolkit;
 
-use Closure;
 use Exception;
 
 /**
@@ -22,10 +21,14 @@ class A
 {
 	/**
 	 * Appends the given array
+	 *
+	 * @param array $array
+	 * @param array $append
+	 * @return array
 	 */
 	public static function append(array $array, array $append): array
 	{
-		return static::merge($array, $append, A::MERGE_APPEND);
+		return $array + $append;
 	}
 
 	/**
@@ -34,12 +37,14 @@ class A
 	 * applying the passed parameters
 	 * @since 3.5.6
 	 *
+	 * @param array $array
 	 * @param mixed ...$args Parameters to pass to the closures
+	 * @return array
 	 */
 	public static function apply(array $array, ...$args): array
 	{
 		array_walk_recursive($array, function (&$item) use ($args) {
-			if ($item instanceof Closure) {
+			if (is_a($item, 'Closure')) {
 				$item = $item(...$args);
 			}
 		});
@@ -68,16 +73,13 @@ class A
 	 * </code>
 	 *
 	 * @param array $array The source array
-	 * @param string|int|array|null $key The key to look for
-	 * @param mixed $default Optional default value, which
-	 *                       should be returned if no element
-	 *                       has been found
+	 * @param mixed $key The key to look for
+	 * @param mixed $default Optional default value, which should be
+	 *                       returned if no element has been found
+	 * @return mixed
 	 */
-	public static function get(
-		$array,
-		string|int|array|null $key,
-		$default = null
-	) {
+	public static function get($array, $key, $default = null)
+	{
 		if (is_array($array) === false) {
 			return $array;
 		}
@@ -114,16 +116,9 @@ class A
 
 					// the element needs to exist and also needs to be an array; otherwise
 					// we cannot find the remaining keys within it (invalid array structure)
-					if (
-						isset($array[$currentKey]) === true &&
-						is_array($array[$currentKey]) === true
-					) {
+					if (isset($array[$currentKey]) === true && is_array($array[$currentKey]) === true) {
 						// $keys only holds the remaining keys that have not been shifted off yet
-						return static::get(
-							$array[$currentKey],
-							implode('.', $keys),
-							$default
-						);
+						return static::get($array[$currentKey], implode('.', $keys), $default);
 					}
 				}
 
@@ -134,11 +129,7 @@ class A
 			// if the input array uses a completely nested structure,
 			// recursively progress layer by layer
 			if (is_array($array[$firstKey]) === true) {
-				return static::get(
-					$array[$firstKey],
-					implode('.', $keys),
-					$default
-				);
+				return static::get($array[$firstKey], implode('.', $keys), $default);
 			}
 
 			// the $firstKey element was found, but isn't an array, so we cannot
@@ -150,14 +141,15 @@ class A
 	}
 
 	/**
-	 * Joins the elements of an array to a string
+	 * @param mixed $value
+	 * @param mixed $separator
+	 * @return string
 	 */
-	public static function join(array|string $value, string $separator = ', '): string
+	public static function join($value, $separator = ', ')
 	{
 		if (is_string($value) === true) {
 			return $value;
 		}
-
 		return implode($separator, $value);
 	}
 
@@ -168,65 +160,44 @@ class A
 	/**
 	 * Merges arrays recursively
 	 *
-	 * If last argument is an integer, it defines the
-	 * behavior for elements with numeric keys;
-	 * - A::MERGE_OVERWRITE:  elements are overwritten, keys are preserved
-	 * - A::MERGE_APPEND:     elements are appended, keys are reset;
-	 * - A::MERGE_REPLACE:    non-associative arrays are completely replaced
+	 * @param array $array1
+	 * @param array $array2
+	 * @param int $mode Behavior for elements with numeric keys;
+	 *                  A::MERGE_APPEND:    elements are appended, keys are reset;
+	 *                  A::MERGE_OVERWRITE: elements are overwritten, keys are preserved
+	 *                  A::MERGE_REPLACE:   non-associative arrays are completely replaced
+	 * @return array
 	 */
-	public static function merge(array|int ...$arrays): array
+	public static function merge($array1, $array2, int $mode = A::MERGE_APPEND)
 	{
-		// get mode from parameters
-		$last = A::last($arrays);
-		$mode = is_int($last) ? array_pop($arrays) : A::MERGE_APPEND;
+		$merged = $array1;
 
-		// get the first two arrays that should be merged
-		$merged = array_shift($arrays);
-		$join   = array_shift($arrays);
+		if (static::isAssociative($array1) === false && $mode === static::MERGE_REPLACE) {
+			return $array2;
+		}
 
-		if (
-			static::isAssociative($merged) === false &&
-			$mode === static::MERGE_REPLACE
-		) {
-			$merged = $join;
-		} else {
-			foreach ($join as $key => $value) {
-				// append to the merged array, don't overwrite numeric keys
-				if (
-					is_int($key) === true &&
-					$mode === static::MERGE_APPEND
-				) {
-					$merged[] = $value;
+		foreach ($array2 as $key => $value) {
 
-				// recursively merge the two array values
-				} elseif (
-					is_array($value) === true &&
-					isset($merged[$key]) === true &&
-					is_array($merged[$key]) === true
-				) {
-					$merged[$key] = static::merge($merged[$key], $value, $mode);
+			// append to the merged array, don't overwrite numeric keys
+			if (is_int($key) === true && $mode === static::MERGE_APPEND) {
+				$merged[] = $value;
 
-				// simply overwrite with the value from the second array
-				} else {
-					$merged[$key] = $value;
-				}
-			}
+			// recursively merge the two array values
+			} elseif (is_array($value) === true && isset($merged[$key]) === true && is_array($merged[$key]) === true) {
+				$merged[$key] = static::merge($merged[$key], $value, $mode);
 
-			if ($mode === static::MERGE_APPEND) {
-				// the keys don't make sense anymore, reset them
-				// array_merge() is the simplest way to renumber
-				// arrays that have both numeric and string keys;
-				// besides the keys, nothing changes here
-				$merged = array_merge($merged, []);
+			// simply overwrite with the value from the second array
+			} else {
+				$merged[$key] = $value;
 			}
 		}
 
-		// if more than two arrays need to be merged, add the result
-		// as first array and the mode to the end and call the method again
-		if (count($arrays) > 0) {
-			array_unshift($arrays, $merged);
-			array_push($arrays, $mode);
-			return static::merge(...$arrays);
+		if ($mode === static::MERGE_APPEND) {
+			// the keys don't make sense anymore, reset them
+			// array_merge() is the simplest way to renumber
+			// arrays that have both numeric and string keys;
+			// besides the keys, nothing changes here
+			$merged = array_merge($merged, []);
 		}
 
 		return $merged;
@@ -260,10 +231,9 @@ class A
 	 * @return array The result array with all values
 	 *               from that column.
 	 */
-	public static function pluck(array $array, string $key): array
+	public static function pluck(array $array, string $key)
 	{
 		$output = [];
-
 		foreach ($array as $a) {
 			if (isset($a[$key]) === true) {
 				$output[] = $a[$key];
@@ -275,6 +245,10 @@ class A
 
 	/**
 	 * Prepends the given array
+	 *
+	 * @param array $array
+	 * @param array $prepend
+	 * @return array
 	 */
 	public static function prepend(array $array, array $prepend): array
 	{
@@ -364,6 +338,11 @@ class A
 	/**
 	 * Returns a number of random elements from an array,
 	 * either in original or shuffled order
+	 *
+	 * @param array $array
+	 * @param int $count
+	 * @param bool $shuffle
+	 * @return array
 	 */
 	public static function random(array $array, int $count = 1, bool $shuffle = false): array
 	{
@@ -409,12 +388,12 @@ class A
 	 */
 	public static function fill(array $array, int $limit, $fill = 'placeholder'): array
 	{
-		$diff = $limit - count($array);
-
-		for ($x = 0; $x < $diff; $x++) {
-			$array[] = $fill;
+		if (count($array) < $limit) {
+			$diff = $limit - count($array);
+			for ($x = 0; $x < $diff; $x++) {
+				$array[] = $fill;
+			}
 		}
-
 		return $array;
 	}
 
@@ -422,6 +401,10 @@ class A
 	 * A simple wrapper around array_map
 	 * with a sane argument order
 	 * @since 3.6.0
+	 *
+	 * @param array $array
+	 * @param callable $map
+	 * @return array
 	 */
 	public static function map(array $array, callable $map): array
 	{
@@ -430,6 +413,11 @@ class A
 
 	/**
 	 * Move an array item to a new index
+	 *
+	 * @param array $array
+	 * @param int $from
+	 * @param int $to
+	 * @return array
 	 */
 	public static function move(array $array, int $from, int $to): array
 	{
@@ -480,15 +468,23 @@ class A
 	 */
 	public static function missing(array $array, array $required = []): array
 	{
-		return array_values(array_diff($required, array_keys($array)));
+		$missing = [];
+		foreach ($required as $r) {
+			if (isset($array[$r]) === false) {
+				$missing[] = $r;
+			}
+		}
+		return $missing;
 	}
 
 	/**
 	 * Normalizes an array into a nested form by converting
 	 * dot notation in keys to nested structures
 	 *
+	 * @param array $array
 	 * @param array $ignore List of keys in dot notation that should
 	 *                      not be converted to a nested structure
+	 * @return array
 	 */
 	public static function nest(array $array, array $ignore = []): array
 	{
@@ -528,10 +524,10 @@ class A
 				is_array($result[$key]) === true &&
 				is_array($value) === true
 			) {
-				$value = array_replace_recursive($result[$key], $value);
+				$result[$key] = array_replace_recursive($result[$key], $value);
+			} else {
+				$result[$key] = $value;
 			}
-
-			$result[$key] = $value;
 		}
 
 		return $result;
@@ -666,12 +662,8 @@ class A
 	 * @param int $decimals The number of decimals to return
 	 * @return float The average value
 	 */
-	public static function average(array $array, int $decimals = 0): float|null
+	public static function average(array $array, int $decimals = 0): float
 	{
-		if (empty($array) === true) {
-			return null;
-		}
-
 		return round((array_sum($array) / sizeof($array)), $decimals);
 	}
 
@@ -690,8 +682,11 @@ class A
 	 * //   'password' => 'super-secret'
 	 * // ];
 	 * </code>
+	 *
+	 * @param array ...$arrays
+	 * @return array
 	 */
-	public static function extend(array ...$arrays): array
+	public static function extend(...$arrays): array
 	{
 		return array_merge_recursive(...$arrays);
 	}
@@ -719,15 +714,19 @@ class A
 	 *   }
 	 * ]);
 	 * </code>
+	 *
+	 * @param array $array
+	 * @param array $update
+	 * @return array
 	 */
 	public static function update(array $array, array $update): array
 	{
 		foreach ($update as $key => $value) {
-			if ($value instanceof Closure) {
-				$value = call_user_func($value, static::get($array, $key));
+			if (is_a($value, 'Closure') === true) {
+				$array[$key] = call_user_func($value, static::get($array, $key));
+			} else {
+				$array[$key] = $value;
 			}
-
-			$array[$key] = $value;
 		}
 
 		return $array;
@@ -736,24 +735,29 @@ class A
 	/**
 	 * Wraps the given value in an array
 	 * if it's not an array yet.
+	 *
+	 * @param mixed|null $array
+	 * @return array
 	 */
 	public static function wrap($array = null): array
 	{
 		if ($array === null) {
 			return [];
-		}
-
-		if (is_array($array) === false) {
+		} elseif (is_array($array) === false) {
 			return [$array];
+		} else {
+			return $array;
 		}
-
-		return $array;
 	}
 
 	/**
 	 * Filter the array using the given callback
 	 * using both value and key
 	 * @since 3.6.5
+	 *
+	 * @param array $array
+	 * @param callable $callback
+	 * @return array
 	 */
 	public static function filter(array $array, callable $callback): array
 	{
@@ -763,16 +767,19 @@ class A
 	/**
 	 * Remove key(s) from an array
 	 * @since 3.6.5
+	 *
+	 * @param array $array
+	 * @param int|string|array $keys
+	 * @return array
 	 */
-	public static function without(array $array, int|string|array $keys): array
+	public static function without(array $array, $keys): array
 	{
 		if (is_int($keys) || is_string($keys)) {
 			$keys = static::wrap($keys);
 		}
 
-		return static::filter(
-			$array,
-			fn ($value, $key) => in_array($key, $keys, true) === false
-		);
+		return static::filter($array, function ($value, $key) use ($keys) {
+			return in_array($key, $keys, true) === false;
+		});
 	}
 }

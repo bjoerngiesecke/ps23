@@ -12,7 +12,9 @@ return [
 		'pattern' => $pattern . '/files/(:any)/sections/(:any)',
 		'method'  => 'GET',
 		'action'  => function (string $path, string $filename, string $sectionName) {
-			return $this->file($path, $filename)->blueprint()->section($sectionName)?->toResponse();
+			if ($section = $this->file($path, $filename)->blueprint()->section($sectionName)) {
+				return $section->toResponse();
+			}
 		}
 	],
 	[
@@ -38,17 +40,14 @@ return [
 			// move_uploaded_file() not working with unit test
 			// @codeCoverageIgnoreStart
 			return $this->upload(function ($source, $filename) use ($path) {
-				$props = [
+				return $this->parent($path)->createFile([
 					'content' => [
 						'sort' => $this->requestBody('sort')
 					],
 					'source'   => $source,
 					'template' => $this->requestBody('template'),
 					'filename' => $filename
-				];
-
-				// move the source file from the temp dir
-				return $this->parent($path)->createFile($props, true);
+				]);
 			});
 			// @codeCoverageIgnoreEnd
 		}
@@ -61,9 +60,9 @@ return [
 
 			if ($this->requestMethod() === 'GET') {
 				return $files->search($this->requestQuery('q'));
+			} else {
+				return $files->query($this->requestBody());
 			}
-
-			return $files->query($this->requestBody());
 		}
 	],
 	[
@@ -87,21 +86,16 @@ return [
 		'pattern' => $pattern . '/files/(:any)',
 		'method'  => 'PATCH',
 		'action'  => function (string $path, string $filename) {
-			return $this->file($path, $filename)->update(
-				$this->requestBody(),
-				$this->language(),
-				true
-			);
+			return $this->file($path, $filename)->update($this->requestBody(), $this->language(), true);
 		}
 	],
 	[
 		'pattern' => $pattern . '/files/(:any)',
 		'method'  => 'POST',
 		'action'  => function (string $path, string $filename) {
-			// move the source file from the temp dir
-			return $this->upload(
-				fn ($source) => $this->file($path, $filename)->replace($source, true)
-			);
+			return $this->upload(function ($source) use ($path, $filename) {
+				return $this->file($path, $filename)->replace($source);
+			});
 		}
 	],
 	[
@@ -130,9 +124,9 @@ return [
 
 			if ($this->requestMethod() === 'GET') {
 				return $files->search($this->requestQuery('q'));
+			} else {
+				return $files->query($this->requestBody());
 			}
-
-			return $files->query($this->requestBody());
 		}
 	],
 ];

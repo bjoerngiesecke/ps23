@@ -20,7 +20,7 @@ use Throwable;
  */
 class Blocks extends Items
 {
-	public const ITEM_CLASS = Block::class;
+	public const ITEM_CLASS = '\Kirby\Cms\Block';
 
 	/**
 	 * Return HTML when the collection is
@@ -114,7 +114,7 @@ class Blocks extends Items
 		if (empty($input) === false && is_array($input) === false) {
 			try {
 				$input = Json::decode((string)$input);
-			} catch (Throwable) {
+			} catch (Throwable $e) {
 				$parser = new Parsley((string)$input, new BlockSchema());
 				$input  = $parser->blocks();
 			}

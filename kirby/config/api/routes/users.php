@@ -26,9 +26,9 @@ return [
 		'action'  => function () {
 			if ($this->requestMethod() === 'GET') {
 				return $this->users()->search($this->requestQuery('q'));
+			} else {
+				return $this->users()->query($this->requestBody());
 			}
-
-			return $this->users()->query($this->requestBody());
 		}
 	],
 	[
@@ -79,21 +79,17 @@ return [
 		],
 		'method'  => 'POST',
 		'action'  => function (string $id) {
-			$this->user($id)->avatar()?->delete();
+			if ($avatar = $this->user($id)->avatar()) {
+				$avatar->delete();
+			}
 
-			return $this->upload(
-				function ($source, $filename) use ($id) {
-					$props = [
-						'filename' => 'profile.' . F::extension($filename),
-						'template' => 'avatar',
-						'source'   => $source
-					];
-
-					// move the source file from the temp dir
-					return $this->user($id)->createFile($props, true);
-				},
-				single: true
-			);
+			return $this->upload(function ($source, $filename) use ($id) {
+				return $this->user($id)->createFile([
+					'filename' => 'profile.' . F::extension($filename),
+					'template' => 'avatar',
+					'source'   => $source
+				]);
+			}, $single = true);
 		}
 	],
 	// @codeCoverageIgnoreEnd

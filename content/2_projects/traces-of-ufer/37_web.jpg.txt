@@ -1,0 +1,25 @@
+Worktype: 
+
+----
+
+Imagetype: Film, Detail
+
+----
+
+Materials: Aluminium, Plywood, Textile
+
+----
+
+Collaborators: 
+
+----
+
+Filetype: img
+
+----
+
+Keywords: 
+
+----
+
+Sort: 1

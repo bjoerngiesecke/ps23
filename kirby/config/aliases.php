@@ -46,16 +46,13 @@ return [
 	'cookie'     => 'Kirby\Http\Cookie',
 	'header'     => 'Kirby\Http\Header',
 	'remote'     => 'Kirby\Http\Remote',
+	'server'     => 'Kirby\Http\Server',
 
 	// image classes
 	'dimensions' => 'Kirby\Image\Dimensions',
 
 	// panel classes
 	'panel'      => 'Kirby\Panel\Panel',
-
-	// template classes
-	'snippet'    => 'Kirby\Template\Snippet',
-	'slot'       => 'Kirby\Template\Slot',
 
 	// toolkit classes
 	'a'          => 'Kirby\Toolkit\A',
@@ -77,7 +74,6 @@ return [
 	'kirby\cms\form'           => 'Kirby\Form\Form',
 	'kirby\cms\kirbytag'       => 'Kirby\Text\KirbyTag',
 	'kirby\cms\kirbytags'      => 'Kirby\Text\KirbyTags',
-	'kirby\cms\template'       => 'Kirby\Template\Template',
 	'kirby\toolkit\dir'        => 'Kirby\Filesystem\Dir',
 	'kirby\toolkit\f'          => 'Kirby\Filesystem\F',
 	'kirby\toolkit\file'       => 'Kirby\Filesystem\File',

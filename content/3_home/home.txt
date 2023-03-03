@@ -1,0 +1,12 @@
+Title: Home
+
+----
+
+Text:
+
+2023, Romain Odin Lepoutre, 
+<a href="callto:+447502473377">+447502473377</a>, 
+<a href="mailto:hello@possiblescenarios.com">Mail</a>, 
+<a href="./about">About</a>, 
+<a href="./links">Links</a>, 
+<a href="./panel">Login</a>

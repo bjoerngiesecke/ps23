@@ -15,7 +15,7 @@ return [
 		/**
 		 * Sets the default time when a new page/file/user is created
 		 */
-		'default' => function ($default = null): string|null {
+		'default' => function ($default = null): ?string {
 			return $default;
 		},
 
@@ -36,13 +36,13 @@ return [
 		/**
 		 * Latest time, which can be selected/saved (H:i or H:i:s)
 		 */
-		'max' => function (string $max = null): string|null {
+		'max' => function (string $max = null): ?string {
 			return Date::optional($max);
 		},
 		/**
 		 * Earliest time, which can be selected/saved (H:i or H:i:s)
 		 */
-		'min' => function (string $min = null): string|null {
+		'min' => function (string $min = null): ?string {
 			return Date::optional($min);
 		},
 
@@ -62,7 +62,7 @@ return [
 				'unit' => 'minute',
 			]);
 		},
-		'value' => function ($value = null): string|null {
+		'value' => function ($value = null): ?string {
 			return $value;
 		}
 	],
@@ -80,7 +80,7 @@ return [
 		'format' => function () {
 			return $this->props['format'] ?? 'H:i:s';
 		},
-		'value' => function (): string|null {
+		'value' => function (): ?string {
 			return $this->toDatetime($this->value, 'H:i:s') ?? '';
 		}
 	],

@@ -40,7 +40,7 @@ class Sessions
 	{
 		if (is_string($store)) {
 			$this->store = new FileSessionStore($store);
-		} elseif ($store instanceof SessionStore) {
+		} elseif (is_a($store, 'Kirby\Session\SessionStore') === true) {
 			$this->store = $store;
 		} else {
 			throw new InvalidArgumentException([
@@ -101,7 +101,9 @@ class Sessions
 	public function create(array $options = [])
 	{
 		// fall back to default mode
-		$options['mode'] ??= $this->mode;
+		if (!isset($options['mode'])) {
+			$options['mode'] = $this->mode;
+		}
 
 		return new Session($this, null, $options);
 	}
@@ -115,7 +117,11 @@ class Sessions
 	 */
 	public function get(string $token, string $mode = null)
 	{
-		return $this->cache[$token] ??= new Session($this, $token, ['mode' => $mode ?? $this->mode]);
+		if (isset($this->cache[$token])) {
+			return $this->cache[$token];
+		}
+
+		return $this->cache[$token] = new Session($this, $token, ['mode' => $mode ?? $this->mode]);
 	}
 
 	/**
@@ -125,33 +131,38 @@ class Sessions
 	 * - In `manual` mode: Fails and throws an Exception
 	 *
 	 * @return \Kirby\Session\Session|null Either the current session or null in case there isn't one
-	 * @throws \Kirby\Exception\Exception
-	 * @throws \Kirby\Exception\LogicException
 	 */
 	public function current()
 	{
-		$token = match ($this->mode) {
-			'cookie' => $this->tokenFromCookie(),
-			'header' => $this->tokenFromHeader(),
-			'manual' => throw new LogicException([
-				'key'       => 'session.sessions.manualMode',
-				'fallback'  => 'Cannot automatically get current session in manual mode',
-				'translate' => false,
-				'httpCode'  => 500
-			]),
-			// unexpected error that shouldn't occur
-			default => throw new Exception(['translate' => false]) // @codeCoverageIgnore
-		};
+		$token = null;
+		switch ($this->mode) {
+			case 'cookie':
+				$token = $this->tokenFromCookie();
+				break;
+			case 'header':
+				$token = $this->tokenFromHeader();
+				break;
+			case 'manual':
+				throw new LogicException([
+					'key'       => 'session.sessions.manualMode',
+					'fallback'  => 'Cannot automatically get current session in manual mode',
+					'translate' => false,
+					'httpCode'  => 500
+				]);
+			default:
+				// unexpected error that shouldn't occur
+				throw new Exception(['translate' => false]); // @codeCoverageIgnore
+		}
 
 		// no token was found, no session
-		if (is_string($token) === false) {
+		if (!is_string($token)) {
 			return null;
 		}
 
 		// token was found, try to get the session
 		try {
 			return $this->get($token);
-		} catch (Throwable) {
+		} catch (Throwable $e) {
 			return null;
 		}
 	}
@@ -181,7 +192,7 @@ class Sessions
 		try {
 			$mode = (is_string($tokenFromHeader)) ? 'header' : 'cookie';
 			return $this->get($token, $mode);
-		} catch (Throwable) {
+		} catch (Throwable $e) {
 			return null;
 		}
 	}
@@ -242,11 +253,11 @@ class Sessions
 	{
 		$value = Cookie::get($this->cookieName());
 
-		if (is_string($value) === false) {
+		if (is_string($value)) {
+			return $value;
+		} else {
 			return null;
 		}
-
-		return $value;
 	}
 
 	/**
@@ -260,7 +271,7 @@ class Sessions
 		$headers = $request->headers();
 
 		// check if the header exists at all
-		if (isset($headers['Authorization']) === false) {
+		if (!isset($headers['Authorization'])) {
 			return null;
 		}
 

@@ -71,8 +71,10 @@ class File extends ModelWithContent
 
 	/**
 	 * The absolute path to the file
+	 *
+	 * @var string|null
 	 */
-	protected string|null $root = null;
+	protected $root;
 
 	/**
 	 * @var string
@@ -81,8 +83,10 @@ class File extends ModelWithContent
 
 	/**
 	 * The public file Url
+	 *
+	 * @var string
 	 */
-	protected string|null $url = null;
+	protected $url;
 
 	/**
 	 * Magic caller for file methods
@@ -160,7 +164,7 @@ class File extends ModelWithContent
 	 */
 	public function blueprint()
 	{
-		if ($this->blueprint instanceof FileBlueprint) {
+		if (is_a($this->blueprint, 'Kirby\Cms\FileBlueprint') === true) {
 			return $this->blueprint;
 		}
 
@@ -263,10 +267,9 @@ class File extends ModelWithContent
 			return $this->id;
 		}
 
-		if (
-			$this->parent() instanceof Page ||
-			$this->parent() instanceof User
-		) {
+		if (is_a($this->parent(), 'Kirby\Cms\Page') === true) {
+			return $this->id = $this->parent()->id() . '/' . $this->filename();
+		} elseif (is_a($this->parent(), 'Kirby\Cms\User') === true) {
 			return $this->id = $this->parent()->id() . '/' . $this->filename();
 		}
 
@@ -295,7 +298,11 @@ class File extends ModelWithContent
 
 		$template = $this->template();
 
-		return $readable[$template] ??= $this->permissions()->can('read');
+		if (isset($readable[$template]) === true) {
+			return $readable[$template];
+		}
+
+		return $readable[$template] = $this->permissions()->can('read');
 	}
 
 	/**
@@ -391,11 +398,7 @@ class File extends ModelWithContent
 	 */
 	public function page()
 	{
-		if ($this->parent() instanceof Page) {
-			return $this->parent();
-		}
-
-		return null;
+		return is_a($this->parent(), 'Kirby\Cms\Page') === true ? $this->parent() : null;
 	}
 
 	/**
@@ -436,20 +439,11 @@ class File extends ModelWithContent
 	 */
 	public function parents()
 	{
-		if ($this->parent() instanceof Page) {
+		if (is_a($this->parent(), 'Kirby\Cms\Page') === true) {
 			return $this->parent()->parents()->prepend($this->parent()->id(), $this->parent());
 		}
 
 		return new Pages();
-	}
-
-	/**
-	 * Return the permanent URL to the file using its UUID
-	 * @since 3.8.0
-	 */
-	public function permalink(): string|null
-	{
-		return $this->uuid()?->url();
 	}
 
 	/**
@@ -467,7 +461,7 @@ class File extends ModelWithContent
 	 *
 	 * @return string|null
 	 */
-	public function root(): string|null
+	public function root(): ?string
 	{
 		return $this->root ??= $this->parent()->root() . '/' . $this->filename();
 	}
@@ -576,11 +570,7 @@ class File extends ModelWithContent
 	 */
 	public function site()
 	{
-		if ($this->parent() instanceof Site) {
-			return $this->parent();
-		}
-
-		return $this->kirby()->site();
+		return is_a($this->parent(), 'Kirby\Cms\Site') === true ? $this->parent() : $this->kirby()->site();
 	}
 
 	/**
@@ -588,7 +578,7 @@ class File extends ModelWithContent
 	 *
 	 * @return string|null
 	 */
-	public function template(): string|null
+	public function template(): ?string
 	{
 		return $this->template ??= $this->content()->get('template')->value();
 	}
@@ -624,6 +614,98 @@ class File extends ModelWithContent
 	public function url(): string
 	{
 		return $this->url ??= ($this->kirby()->component('file::url'))($this->kirby(), $this);
+	}
+
+
+	/**
+	 * Deprecated!
+	 */
+
+	/**
+	 * Provides a kirbytag or markdown
+	 * tag for the file, which will be
+	 * used in the panel, when the file
+	 * gets dragged onto a textarea
+	 *
+	 * @todo Remove in 3.8.0
+	 *
+	 * @internal
+	 * @param string|null $type (null|auto|kirbytext|markdown)
+	 * @param bool $absolute
+	 * @return string
+	 * @codeCoverageIgnore
+	 */
+	public function dragText(string $type = null, bool $absolute = false): string
+	{
+		Helpers::deprecated('Cms\File::dragText() has been deprecated and will be removed in Kirby 3.8.0. Use $file->panel()->dragText() instead.');
+		return $this->panel()->dragText($type, $absolute);
+	}
+
+	/**
+	 * Returns an array of all actions
+	 * that can be performed in the Panel
+	 *
+	 * @todo Remove in 3.8.0
+	 *
+	 * @since 3.3.0 This also checks for the lock status
+	 * @since 3.5.1 This also checks for matching accept settings
+	 *
+	 * @param array $unlock An array of options that will be force-unlocked
+	 * @return array
+	 * @codeCoverageIgnore
+	 */
+	public function panelOptions(array $unlock = []): array
+	{
+		Helpers::deprecated('Cms\File::panelOptions() has been deprecated and will be removed in Kirby 3.8.0. Use $file->panel()->options() instead.');
+		return $this->panel()->options($unlock);
+	}
+
+	/**
+	 * Returns the full path without leading slash
+	 *
+	 * @todo Remove in 3.8.0
+	 *
+	 * @internal
+	 * @return string
+	 * @codeCoverageIgnore
+	 */
+	public function panelPath(): string
+	{
+		Helpers::deprecated('Cms\File::panelPath() has been deprecated and will be removed in Kirby 3.8.0. Use $file->panel()->path() instead.');
+		return $this->panel()->path();
+	}
+
+	/**
+	 * Prepares the response data for file pickers
+	 * and file fields
+	 *
+	 * @todo Remove in 3.8.0
+	 *
+	 * @param array|null $params
+	 * @return array
+	 * @codeCoverageIgnore
+	 */
+	public function panelPickerData(array $params = []): array
+	{
+		Helpers::deprecated('Cms\File::panelPickerData() has been deprecated and will be removed in Kirby 3.8.0. Use $file->panel()->pickerData() instead.');
+		return $this->panel()->pickerData($params);
+	}
+
+	/**
+	 * Returns the url to the editing view
+	 * in the panel
+	 *
+	 * @todo Remove in 3.8.0
+	 *
+	 * @internal
+	 * @param bool $relative
+	 * @return string
+	 * @codeCoverageIgnore
+	 */
+	public function panelUrl(bool $relative = false): string
+	{
+		Helpers::deprecated('Cms\File::panelUrl() has been deprecated and will be removed in Kirby 3.8.0. Use $file->panel()->url() instead.');
+		return $this->panel()->url($relative);
 	}
 
 	/**

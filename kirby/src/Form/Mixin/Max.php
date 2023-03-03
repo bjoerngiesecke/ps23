@@ -6,7 +6,7 @@ trait Max
 {
 	protected $max;
 
-	public function max(): int|null
+	public function max(): ?int
 	{
 		return $this->max;
 	}

@@ -58,7 +58,7 @@ class Blueprint
 			throw new InvalidArgumentException('A blueprint model is required');
 		}
 
-		if ($props['model'] instanceof ModelWithContent === false) {
+		if (is_a($props['model'], ModelWithContent::class) === false) {
 			throw new InvalidArgumentException('Invalid blueprint model');
 		}
 
@@ -208,7 +208,7 @@ class Blueprint
 				$mixin = static::find($extend);
 				$mixin = static::extend($mixin);
 				$props = A::merge($mixin, $props, A::MERGE_REPLACE);
-			} catch (Exception) {
+			} catch (Exception $e) {
 				// keep the props unextended if the snippet wasn't found
 			}
 		}
@@ -231,7 +231,7 @@ class Blueprint
 	{
 		try {
 			$props = static::load($name);
-		} catch (Exception) {
+		} catch (Exception $e) {
 			$props = $fallback !== null ? static::load($fallback) : null;
 		}
 
@@ -251,7 +251,7 @@ class Blueprint
 	 * @param string $name
 	 * @return array|null
 	 */
-	public function field(string $name): array|null
+	public function field(string $name): ?array
 	{
 		return $this->fields[$name] ?? null;
 	}
@@ -297,8 +297,7 @@ class Blueprint
 		// now ensure that we always return the data array
 		if (is_string($file) === true && F::exists($file) === true) {
 			return static::$loaded[$name] = Data::read($file);
-		}
-		if (is_array($file) === true) {
+		} elseif (is_array($file) === true) {
 			return static::$loaded[$name] = $file;
 		}
 
@@ -399,9 +398,9 @@ class Blueprint
 			if (empty($columnProps['sections']) === true) {
 				$columnProps['sections'] = [
 					$tabName . '-info-' . $columnKey => [
-						'label' => 'Column (' . ($columnProps['width'] ?? '1/1') . ')',
-						'type'  => 'info',
-						'text'  => 'No sections yet'
+						'headline' => 'Column (' . ($columnProps['width'] ?? '1/1') . ')',
+						'type'     => 'info',
+						'text'     => 'No sections yet'
 					]
 				];
 			}
@@ -507,6 +506,7 @@ class Blueprint
 		}
 
 		foreach ($fields as $fieldName => $fieldProps) {
+
 			// extend field from string
 			if (is_string($fieldProps) === true) {
 				$fieldProps = [
@@ -600,6 +600,7 @@ class Blueprint
 	protected function normalizeSections(string $tabName, array $sections): array
 	{
 		foreach ($sections as $sectionName => $sectionProps) {
+
 			// unset / remove section if its property is false
 			if ($sectionProps === false) {
 				unset($sections[$sectionName]);
@@ -621,17 +622,17 @@ class Blueprint
 
 			if (empty($type) === true || is_string($type) === false) {
 				$sections[$sectionName] = [
-					'name'  => $sectionName,
-					'label' => 'Invalid section type for section "' . $sectionName . '"',
-					'type'  => 'info',
-					'text'  => 'The following section types are available: ' . $this->helpList(array_keys(Section::$types))
+					'name' => $sectionName,
+					'headline' => 'Invalid section type for section "' . $sectionName . '"',
+					'type' => 'info',
+					'text' => 'The following section types are available: ' . $this->helpList(array_keys(Section::$types))
 				];
 			} elseif (isset(Section::$types[$type]) === false) {
 				$sections[$sectionName] = [
-					'name'  => $sectionName,
-					'label' => 'Invalid section type ("' . $type . '")',
-					'type'  => 'info',
-					'text'  => 'The following section types are available: ' . $this->helpList(array_keys(Section::$types))
+					'name' => $sectionName,
+					'headline' => 'Invalid section type ("' . $type . '")',
+					'type' => 'info',
+					'text' => 'The following section types are available: ' . $this->helpList(array_keys(Section::$types))
 				];
 			}
 
@@ -685,6 +686,7 @@ class Blueprint
 		}
 
 		foreach ($tabs as $tabName => $tabProps) {
+
 			// unset / remove tab if its property is false
 			if ($tabProps === false) {
 				unset($tabs[$tabName]);
@@ -731,7 +733,7 @@ class Blueprint
 		$preset = static::$presets[$props['preset']];
 
 		if (is_string($preset) === true) {
-			$preset = F::load($preset, allowOutput: false);
+			$preset = require $preset;
 		}
 
 		return $preset($props);
@@ -778,7 +780,7 @@ class Blueprint
 	 * @param string|null $name
 	 * @return array|null
 	 */
-	public function tab(string|null $name = null): array|null
+	public function tab(?string $name = null): ?array
 	{
 		if ($name === null) {
 			return A::first($this->tabs);

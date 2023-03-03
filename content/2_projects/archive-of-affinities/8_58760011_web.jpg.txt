@@ -1,0 +1,25 @@
+Worktype: 
+
+----
+
+Imagetype: Film
+
+----
+
+Materials: Wood, String, Hose
+
+----
+
+Collaborators: 
+
+----
+
+Filetype: img
+
+----
+
+Keywords: Set
+
+----
+
+Sort: 1

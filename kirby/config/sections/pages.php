@@ -1,8 +1,6 @@
 <?php
 
 use Kirby\Cms\Blueprint;
-use Kirby\Cms\Page;
-use Kirby\Cms\Site;
 use Kirby\Exception\InvalidArgumentException;
 use Kirby\Toolkit\A;
 use Kirby\Toolkit\I18n;
@@ -55,8 +53,8 @@ return [
 			$parent = $this->parentModel();
 
 			if (
-				$parent instanceof Site === false &&
-				$parent instanceof Page === false
+				is_a($parent, 'Kirby\Cms\Site') === false &&
+				is_a($parent, 'Kirby\Cms\Page') === false
 			) {
 				throw new InvalidArgumentException('The parent is invalid. You must choose the site or a page as parent.');
 			}
@@ -64,13 +62,22 @@ return [
 			return $parent;
 		},
 		'pages' => function () {
-			$pages = match ($this->status) {
-				'draft'     => $this->parent->drafts(),
-				'listed'    => $this->parent->children()->listed(),
-				'published' => $this->parent->children(),
-				'unlisted'  => $this->parent->children()->unlisted(),
-				default     => $this->parent->childrenAndDrafts()
-			};
+			switch ($this->status) {
+				case 'draft':
+					$pages = $this->parent->drafts();
+					break;
+				case 'listed':
+					$pages = $this->parent->children()->listed();
+					break;
+				case 'published':
+					$pages = $this->parent->children();
+					break;
+				case 'unlisted':
+					$pages = $this->parent->children()->unlisted();
+					break;
+				default:
+					$pages = $this->parent->childrenAndDrafts();
+			}
 
 			// filters pages that are protected and not in the templates list
 			// internal `filter()` method used instead of foreach loop that previously included `unset()`
@@ -92,8 +99,8 @@ return [
 			});
 
 			// search
-			if ($this->search === true && empty($this->searchterm()) === false) {
-				$pages = $pages->search($this->searchterm());
+			if ($this->search === true && empty($this->searchterm) === false) {
+				$pages = $pages->search($this->searchterm);
 			}
 
 			// sort
@@ -221,7 +228,7 @@ return [
 						'name'  => basename($props['name']),
 						'title' => $props['title'],
 					];
-				} catch (Throwable) {
+				} catch (Throwable $e) {
 					$blueprints[] = [
 						'name'  => basename($template),
 						'title' => ucfirst($template),

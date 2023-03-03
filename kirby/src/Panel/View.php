@@ -2,14 +2,11 @@
 
 namespace Kirby\Panel;
 
-use Closure;
 use Kirby\Cms\App;
-use Kirby\Exception\Exception;
 use Kirby\Http\Response;
 use Kirby\Toolkit\A;
 use Kirby\Toolkit\I18n;
 use Kirby\Toolkit\Str;
-use Throwable;
 
 /**
  * The View response class handles Fiber
@@ -30,6 +27,9 @@ class View
 	 * query parameters. Requests can return only
 	 * certain data fields that way or globals can
 	 * be injected on demand.
+	 *
+	 * @param array $data
+	 * @return array
 	 */
 	public static function apply(array $data): array
 	{
@@ -55,8 +55,12 @@ class View
 	 *
 	 * A global request can be activated with the `X-Fiber-Globals` header or the
 	 * `_globals` query parameter.
+	 *
+	 * @param array $data
+	 * @param string|null $globals
+	 * @return array
 	 */
-	public static function applyGlobals(array $data, string|null $globals = null): array
+	public static function applyGlobals(array $data, ?string $globals = null): array
 	{
 		// split globals string into an array of fields
 		$globalKeys = Str::split($globals, ',');
@@ -85,8 +89,12 @@ class View
 	 *
 	 * Such requests can fetch shared data or globals.
 	 * Globals will be loaded on demand.
+	 *
+	 * @param array $data
+	 * @param string|null $only
+	 * @return array
 	 */
-	public static function applyOnly(array $data, string|null $only = null): array
+	public static function applyOnly(array $data, ?string $only = null): array
 	{
 		// split include string into an array of fields
 		$onlyKeys = Str::split($only, ',');
@@ -125,6 +133,10 @@ class View
 	 * The full shared data is always sent on every JSON and
 	 * full document request unless the `X-Fiber-Only` header or
 	 * the `_only` query parameter is set.
+	 *
+	 * @param array $view
+	 * @param array $options
+	 * @return array
 	 */
 	public static function data(array $view = [], array $options = []): array
 	{
@@ -227,6 +239,10 @@ class View
 
 	/**
 	 * Renders the error view with provided message
+	 *
+	 * @param string $message
+	 * @param int $code
+	 * @return array
 	 */
 	public static function error(string $message, int $code = 404)
 	{
@@ -249,6 +265,8 @@ class View
 	 * is only requested once on the first page load.
 	 * It can be loaded partially later if needed,
 	 * but is otherwise not included in Fiber calls.
+	 *
+	 * @return array
 	 */
 	public static function globals(): array
 	{
@@ -305,8 +323,13 @@ class View
 
 	/**
 	 * Creates the menu for the topbar
+	 *
+	 * @param array $areas
+	 * @param array $permissions
+	 * @param string|null $current
+	 * @return array
 	 */
-	public static function menu(array|null $areas = [], array|null $permissions = [], string|null $current = null): array
+	public static function menu(?array $areas = [], ?array $permissions = [], ?string $current = null): array
 	{
 		$menu = [];
 
@@ -323,7 +346,7 @@ class View
 			$menuSetting = $area['menu'] ?? false;
 
 			// menu settings can be a callback that can return true, false or disabled
-			if ($menuSetting instanceof Closure) {
+			if (is_a($menuSetting, 'Closure') === true) {
 				$menuSetting = $menuSetting($areas, $permissions, $current);
 			}
 
@@ -368,19 +391,23 @@ class View
 	 * Renders the main panel view either as
 	 * JSON response or full HTML document based
 	 * on the request header or query params
+	 *
+	 * @param mixed $data
+	 * @param array $options
+	 * @return \Kirby\Http\Response
 	 */
-	public static function response($data, array $options = []): Response
+	public static function response($data, array $options = [])
 	{
 		// handle redirects
-		if ($data instanceof Redirect) {
+		if (is_a($data, 'Kirby\Panel\Redirect') === true) {
 			return Response::redirect($data->location(), $data->code());
 
 		// handle Kirby exceptions
-		} elseif ($data instanceof Exception) {
+		} elseif (is_a($data, 'Kirby\Exception\Exception') === true) {
 			$data = static::error($data->getMessage(), $data->getHttpCode());
 
 		// handle regular exceptions
-		} elseif ($data instanceof Throwable) {
+		} elseif (is_a($data, 'Throwable') === true) {
 			$data = static::error($data->getMessage(), 500);
 
 		// only expect arrays from here on
@@ -393,6 +420,7 @@ class View
 
 		// if requested, send $fiber data as JSON
 		if (Panel::isFiberRequest() === true) {
+
 			// filter data, if only or globals headers or
 			// query parameters are set
 			$fiber = static::apply($fiber);
@@ -410,7 +438,7 @@ class View
 		return Document::response($fiber);
 	}
 
-	public static function searches(array $areas, array $permissions): array
+	public static function searches(array $areas, array $permissions)
 	{
 		$searches = [];
 

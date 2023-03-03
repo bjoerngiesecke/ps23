@@ -19,7 +19,7 @@ use Kirby\Toolkit\Str;
  */
 class Fieldsets extends Items
 {
-	public const ITEM_CLASS = Fieldset::class;
+	public const ITEM_CLASS = '\Kirby\Cms\Fieldset';
 
 	protected static function createFieldsets($params)
 	{
@@ -93,7 +93,7 @@ class Fieldsets extends Items
 		return $this->options['groups'] ?? [];
 	}
 
-	public function toArray(Closure|null $map = null): array
+	public function toArray(?Closure $map = null): array
 	{
 		return A::map(
 			$this->data,

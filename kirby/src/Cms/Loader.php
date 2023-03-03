@@ -54,7 +54,7 @@ class Loader
 	 * @param string $name
 	 * @return array|null
 	 */
-	public function area(string $name): array|null
+	public function area(string $name): ?array
 	{
 		return $this->areas()[$name] ?? null;
 	}
@@ -102,7 +102,7 @@ class Loader
 	 * @param string $name
 	 * @return \Closure|null
 	 */
-	public function component(string $name): Closure|null
+	public function component(string $name): ?Closure
 	{
 		return $this->extension('components', $name);
 	}
@@ -159,13 +159,14 @@ class Loader
 	public function resolve($item)
 	{
 		if (is_string($item) === true) {
-			$item = match (F::extension($item)) {
-				'php'   => F::load($item, allowOutput: false),
-				default => Data::read($item)
-			};
+			if (F::extension($item) !== 'php') {
+				$item = Data::read($item);
+			} else {
+				$item = require $item;
+			}
 		}
 
-		if (is_callable($item) === true) {
+		if (is_callable($item)) {
 			$item = $item($this->kirby);
 		}
 
@@ -205,7 +206,7 @@ class Loader
 		// convert closure dropdowns to an array definition
 		// otherwise they cannot be merged properly later
 		foreach ($dropdowns as $key => $dropdown) {
-			if ($dropdown instanceof Closure) {
+			if (is_a($dropdown, 'Closure') === true) {
 				$area['dropdowns'][$key] = [
 					'options' => $dropdown
 				];
@@ -221,7 +222,7 @@ class Loader
 	 * @param string $name
 	 * @return array|null
 	 */
-	public function section(string $name): array|null
+	public function section(string $name): ?array
 	{
 		return $this->resolve($this->extension('sections', $name));
 	}

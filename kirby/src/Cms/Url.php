@@ -21,10 +21,12 @@ use Kirby\Http\Url as BaseUrl;
  */
 class Url extends BaseUrl
 {
-	public static string|null $home = null;
+	public static $home = null;
 
 	/**
 	 * Returns the Url to the homepage
+	 *
+	 * @return string
 	 */
 	public static function home(): string
 	{
@@ -32,10 +34,13 @@ class Url extends BaseUrl
 	}
 
 	/**
-	 * Creates an absolute Url to a template asset if it exists.
-	 * This is used in the `css()` and `js()` helpers
+	 * Creates an absolute Url to a template asset if it exists. This is used in the `css()` and `js()` helpers
+	 *
+	 * @param string $assetPath
+	 * @param string $extension
+	 * @return string|null
 	 */
-	public static function toTemplateAsset(string $assetPath, string $extension): string|null
+	public static function toTemplateAsset(string $assetPath, string $extension)
 	{
 		$kirby = App::instance();
 		$page  = $kirby->site()->page();
@@ -49,9 +54,11 @@ class Url extends BaseUrl
 	/**
 	 * Smart resolver for internal and external urls
 	 *
+	 * @param string|null $path
 	 * @param array|string|null $options Either an array of options for the Uri class or a language string
+	 * @return string
 	 */
-	public static function to(string|null $path = null, array|string|null $options = null): string
+	public static function to(string $path = null, $options = null): string
 	{
 		$kirby = App::instance();
 		return ($kirby->component('url'))($kirby, $path, $options);

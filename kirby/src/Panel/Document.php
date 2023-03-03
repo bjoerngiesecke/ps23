@@ -3,6 +3,7 @@
 namespace Kirby\Panel;
 
 use Kirby\Cms\App;
+use Kirby\Cms\Helpers;
 use Kirby\Exception\Exception;
 use Kirby\Exception\InvalidArgumentException;
 use Kirby\Filesystem\Asset;
@@ -30,6 +31,8 @@ class Document
 	/**
 	 * Generates an array with all assets
 	 * that need to be loaded for the panel (js, css, icons)
+	 *
+	 * @return array
 	 */
 	public static function assets(): array
 	{
@@ -69,8 +72,6 @@ class Document
 				'custom'  => static::customAsset('panel.css'),
 			],
 			'icons' => static::favicon($url),
-			// loader for plugins' index.dev.mjs files – inlined, so we provide the code instead of the asset URL
-			'plugin-imports' => $plugins->read('mjs'),
 			'js' => [
 				'vendor'       => [
 					'nonce' => $nonce,
@@ -134,8 +135,9 @@ class Document
 	 * @since 3.7.0
 	 *
 	 * @param string $option asset option name
+	 * @return string|null
 	 */
-	public static function customAsset(string $option): string|null
+	public static function customAsset(string $option): ?string
 	{
 		if ($path = App::instance()->option($option)) {
 			$asset = new Asset($path);
@@ -149,12 +151,34 @@ class Document
 	}
 
 	/**
-	 * Returns array of favicon icons
+	 * @deprecated 3.7.0 Use `Document::customAsset('panel.css)` instead
+	 * @todo remove in 3.8.0
+	 * @codeCoverageIgnore
+	 */
+	public static function customCss(): ?string
+	{
+		Helpers::deprecated('Panel\Document::customCss() has been deprecated and will be removed in Kirby 3.8.0. Use Panel\Document::customAsset(\'panel.css\') instead.');
+		return static::customAsset('panel.css');
+	}
+
+	/**
+	 * @deprecated 3.7.0 Use `Document::customAsset('panel.js)` instead
+	 * @todo remove in 3.8.0
+	 * @codeCoverageIgnore
+	 */
+	public static function customJs(): ?string
+	{
+		Helpers::deprecated('Panel\Document::customJs() has been deprecated and will be removed in Kirby 3.8.0. Use Panel\Document::customAsset(\'panel.js\') instead.');
+		return static::customAsset('panel.js');
+	}
+
+	/**
+	 * Returns array of favion icons
 	 * based on config option
 	 * @since 3.7.0
 	 *
 	 * @param string $url URL prefix for default icons
-	 * @throws \Kirby\Exception\InvalidArgumentException
+	 * @return array
 	 */
 	public static function favicon(string $url = ''): array
 	{
@@ -164,13 +188,13 @@ class Document
 				'type' => 'image/png',
 				'url'  => $url . '/apple-touch-icon.png',
 			],
-			'alternate icon' => [
-				'type' => 'image/png',
-				'url'  => $url . '/favicon.png',
-			],
 			'shortcut icon' => [
 				'type' => 'image/svg+xml',
 				'url'  => $url . '/favicon.svg',
+			],
+			'alternate icon' => [
+				'type' => 'image/png',
+				'url'  => $url . '/favicon.png',
 			]
 		]);
 
@@ -195,18 +219,19 @@ class Document
 	 * Load the SVG icon sprite
 	 * This will be injected in the
 	 * initial HTML document for the Panel
+	 *
+	 * @return string
 	 */
 	public static function icons(): string
 	{
-		$dev = App::instance()->option('panel.dev', false);
-		$dir = $dev ? 'public' : 'dist';
-		return F::read(App::instance()->root('kirby') . '/panel/' . $dir . '/img/icons.svg');
+		return F::read(App::instance()->root('kirby') . '/panel/dist/img/icons.svg');
 	}
 
 	/**
 	 * Links all dist files in the media folder
 	 * and returns the link to the requested asset
 	 *
+	 * @return bool
 	 * @throws \Kirby\Exception\Exception If Panel assets could not be moved to the public directory
 	 */
 	public static function link(): bool
@@ -238,8 +263,11 @@ class Document
 
 	/**
 	 * Renders the panel document
+	 *
+	 * @param array $fiber
+	 * @return \Kirby\Http\Response
 	 */
-	public static function response(array $fiber): Response
+	public static function response(array $fiber)
 	{
 		$kirby = App::instance();
 
@@ -248,7 +276,7 @@ class Document
 		try {
 			if (static::link() === true) {
 				usleep(1);
-				Response::go($kirby->url('base') . '/' . $kirby->path());
+				Response::go($kirby->url('index') . '/' . $kirby->path());
 			}
 		} catch (Throwable $e) {
 			die('The Panel assets cannot be installed properly. ' . $e->getMessage());

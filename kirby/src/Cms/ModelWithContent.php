@@ -7,9 +7,6 @@ use Kirby\Data\Data;
 use Kirby\Exception\InvalidArgumentException;
 use Kirby\Form\Form;
 use Kirby\Toolkit\Str;
-use Kirby\Uuid\Identifiable;
-use Kirby\Uuid\Uuid;
-use Kirby\Uuid\Uuids;
 use Throwable;
 
 /**
@@ -21,7 +18,7 @@ use Throwable;
  * @copyright Bastian Allgeier
  * @license   https://getkirby.com/license
  */
-abstract class ModelWithContent extends Model implements Identifiable
+abstract class ModelWithContent extends Model
 {
 	/**
 	 * The content
@@ -86,41 +83,39 @@ abstract class ModelWithContent extends Model implements Identifiable
 	 */
 	public function content(string $languageCode = null)
 	{
+
 		// single language support
 		if ($this->kirby()->multilang() === false) {
-			if ($this->content instanceof Content) {
+			if (is_a($this->content, 'Kirby\Cms\Content') === true) {
 				return $this->content;
 			}
 
 			// don't normalize field keys (already handled by the `Data` class)
 			return $this->content = new Content($this->readContent(), $this, false);
+
+		// multi language support
+		} else {
+
+			// only fetch from cache for the default language
+			if ($languageCode === null && is_a($this->content, 'Kirby\Cms\Content') === true) {
+				return $this->content;
+			}
+
+			// get the translation by code
+			if ($translation = $this->translation($languageCode)) {
+				// don't normalize field keys (already handled by the `ContentTranslation` class)
+				$content = new Content($translation->content(), $this, false);
+			} else {
+				throw new InvalidArgumentException('Invalid language: ' . $languageCode);
+			}
+
+			// only store the content for the current language
+			if ($languageCode === null) {
+				$this->content = $content;
+			}
+
+			return $content;
 		}
-
-		// get the targeted language
-		$language = $this->kirby()->language($languageCode);
-
-		// stop if the language does not exist
-		if ($language === null) {
-			throw new InvalidArgumentException('Invalid language: ' . $languageCode);
-		}
-
-		// only fetch from cache for the current language
-		if ($languageCode === null && $this->content instanceof Content) {
-			return $this->content;
-		}
-
-		// get the translation by code
-		$translation = $this->translation($language->code());
-
-		// don't normalize field keys (already handled by the `ContentTranslation` class)
-		$content = new Content($translation->content(), $this, false);
-
-		// only store the content for the current language
-		if ($languageCode === null) {
-			$this->content = $content;
-		}
-
-		return $content;
 	}
 
 	/**
@@ -142,21 +137,21 @@ abstract class ModelWithContent extends Model implements Identifiable
 		if ($force === true) {
 			if (empty($languageCode) === false) {
 				return $directory . '/' . $filename . '.' . $languageCode . '.' . $extension;
+			} else {
+				return $directory . '/' . $filename . '.' . $extension;
 			}
-
-			return $directory . '/' . $filename . '.' . $extension;
 		}
 
 		// add and validate the language code in multi language mode
 		if ($this->kirby()->multilang() === true) {
 			if ($language = $this->kirby()->languageCode($languageCode)) {
 				return $directory . '/' . $filename . '.' . $language . '.' . $extension;
+			} else {
+				throw new InvalidArgumentException('Invalid language: ' . $languageCode);
 			}
-
-			throw new InvalidArgumentException('Invalid language: ' . $languageCode);
+		} else {
+			return $directory . '/' . $filename . '.' . $extension;
 		}
-
-		return $directory . '/' . $filename . '.' . $extension;
 	}
 
 	/**
@@ -172,11 +167,11 @@ abstract class ModelWithContent extends Model implements Identifiable
 				$files[] = $this->contentFile($code);
 			}
 			return $files;
+		} else {
+			return [
+				$this->contentFile()
+			];
 		}
-
-		return [
-			$this->contentFile()
-		];
 	}
 
 	/**
@@ -201,7 +196,7 @@ abstract class ModelWithContent extends Model implements Identifiable
 	 * @internal
 	 * @return string|null
 	 */
-	public function contentFileDirectory(): string|null
+	public function contentFileDirectory(): ?string
 	{
 		return $this->root();
 	}
@@ -353,15 +348,15 @@ abstract class ModelWithContent extends Model implements Identifiable
 		try {
 			$result = Str::query($query, [
 				'kirby'             => $this->kirby(),
-				'site'              => $this instanceof Site ? $this : $this->site(),
+				'site'              => is_a($this, 'Kirby\Cms\Site') ? $this : $this->site(),
 				'model'             => $this,
 				static::CLASS_ALIAS => $this
 			]);
-		} catch (Throwable) {
+		} catch (Throwable $e) {
 			return null;
 		}
 
-		if ($expect !== null && $result instanceof $expect === false) {
+		if ($expect !== null && is_a($result, $expect) !== true) {
 			return null;
 		}
 
@@ -377,16 +372,11 @@ abstract class ModelWithContent extends Model implements Identifiable
 	 */
 	public function readContent(string $languageCode = null): array
 	{
-		$file = $this->contentFile($languageCode);
-
-		// only if the content file really does not exist, it's ok
-		// to return empty content. Otherwise this could lead to
-		// content loss in case of file reading issues
-		if (file_exists($file) === false) {
+		try {
+			return Data::read($this->contentFile($languageCode));
+		} catch (Throwable $e) {
 			return [];
 		}
-
-		return Data::read($file);
 	}
 
 	/**
@@ -394,7 +384,7 @@ abstract class ModelWithContent extends Model implements Identifiable
 	 *
 	 * @return string|null
 	 */
-	abstract public function root(): string|null;
+	abstract public function root(): ?string;
 
 	/**
 	 * Stores the content on disk
@@ -409,9 +399,9 @@ abstract class ModelWithContent extends Model implements Identifiable
 	{
 		if ($this->kirby()->multilang() === true) {
 			return $this->saveTranslation($data, $languageCode, $overwrite);
+		} else {
+			return $this->saveContent($data, $overwrite);
 		}
-
-		return $this->saveContent($data, $overwrite);
 	}
 
 	/**
@@ -467,11 +457,6 @@ abstract class ModelWithContent extends Model implements Identifiable
 				if (($field['translate'] ?? true) === false) {
 					$content[strtolower($field['name'])] = null;
 				}
-			}
-
-			// remove UUID for non-default languages
-			if (Uuids::enabled() === true && isset($content['uuid']) === true) {
-				$content['uuid'] = null;
 			}
 
 			// merge the translation with the new data
@@ -531,11 +516,10 @@ abstract class ModelWithContent extends Model implements Identifiable
 	 *
 	 * @param string|null $template Template string or `null` to use the model ID
 	 * @param array $data
-	 * @param string|null $fallback Fallback for tokens in the template that cannot be replaced
-	 *                              (`null` to keep the original token)
+	 * @param string $fallback Fallback for tokens in the template that cannot be replaced
 	 * @return string
 	 */
-	public function toSafeString(string $template = null, array $data = [], string|null $fallback = ''): string
+	public function toSafeString(string $template = null, array $data = [], string $fallback = ''): string
 	{
 		return $this->toString($template, $data, $fallback, 'safeTemplate');
 	}
@@ -545,12 +529,11 @@ abstract class ModelWithContent extends Model implements Identifiable
 	 *
 	 * @param string|null $template Template string or `null` to use the model ID
 	 * @param array $data
-	 * @param string|null $fallback Fallback for tokens in the template that cannot be replaced
-	 *                              (`null` to keep the original token)
+	 * @param string $fallback Fallback for tokens in the template that cannot be replaced
 	 * @param string $handler For internal use
 	 * @return string
 	 */
-	public function toString(string $template = null, array $data = [], string|null $fallback = '', string $handler = 'template'): string
+	public function toString(string $template = null, array $data = [], string $fallback = '', string $handler = 'template'): string
 	{
 		if ($template === null) {
 			return $this->id() ?? '';
@@ -562,7 +545,7 @@ abstract class ModelWithContent extends Model implements Identifiable
 
 		$result = Str::$handler($template, array_replace([
 			'kirby'             => $this->kirby(),
-			'site'              => $this instanceof Site ? $this : $this->site(),
+			'site'              => is_a($this, 'Kirby\Cms\Site') ? $this : $this->site(),
 			'model'             => $this,
 			static::CLASS_ALIAS => $this,
 		], $data), ['fallback' => $fallback]);
@@ -579,11 +562,7 @@ abstract class ModelWithContent extends Model implements Identifiable
 	 */
 	public function translation(string $languageCode = null)
 	{
-		if ($language = $this->kirby()->language($languageCode)) {
-			return $this->translations()->find($language->code());
-		}
-
-		return null;
+		return $this->translations()->find($languageCode ?? $this->kirby()->language()->code());
 	}
 
 	/**
@@ -629,26 +608,25 @@ abstract class ModelWithContent extends Model implements Identifiable
 		]);
 
 		// validate the input
-		if ($validate === true && $form->isInvalid() === true) {
-			throw new InvalidArgumentException([
-				'fallback' => 'Invalid form with errors',
-				'details'  => $form->errors()
-			]);
+		if ($validate === true) {
+			if ($form->isInvalid() === true) {
+				throw new InvalidArgumentException([
+					'fallback' => 'Invalid form with errors',
+					'details'  => $form->errors()
+				]);
+			}
 		}
 
 		$arguments = [static::CLASS_ALIAS => $this, 'values' => $form->data(), 'strings' => $form->strings(), 'languageCode' => $languageCode];
 		return $this->commit('update', $arguments, function ($model, $values, $strings, $languageCode) {
-			return $model->save($strings, $languageCode, true);
-		});
-	}
+			// save updated values
+			$model = $model->save($strings, $languageCode, true);
 
-	/**
-	 * Returns the model's UUID
-	 * @since 3.8.0
-	 */
-	public function uuid(): Uuid|null
-	{
-		return Uuid::for($this);
+			// update model in siblings collection
+			$model->siblings()->add($model);
+
+			return $model;
+		});
 	}
 
 	/**
@@ -666,5 +644,60 @@ abstract class ModelWithContent extends Model implements Identifiable
 			$this->contentFile($languageCode),
 			$this->contentFileData($data, $languageCode)
 		);
+	}
+
+
+	/**
+	 * Deprecated!
+	 */
+
+	/**
+	 * Returns the panel icon definition
+	 *
+	 * @deprecated 3.6.0 Use `->panel()->image()` instead
+	 * @todo Remove in 3.8.0
+	 *
+	 * @internal
+	 * @param array|null $params
+	 * @return array|null
+	 * @codeCoverageIgnore
+	 */
+	public function panelIcon(array $params = null): ?array
+	{
+		Helpers::deprecated('Cms\ModelWithContent::panelIcon() has been deprecated and will be removed in Kirby 3.8.0. Use $model->panel()->image() instead.');
+		return $this->panel()->image($params);
+	}
+
+	/**
+	 * @deprecated 3.6.0 Use `->panel()->image()` instead
+	 * @todo Remove in 3.8.0
+	 *
+	 * @internal
+	 * @param string|array|false|null $settings
+	 * @return array|null
+	 * @codeCoverageIgnore
+	 */
+	public function panelImage($settings = null): ?array
+	{
+		Helpers::deprecated('Cms\ModelWithContent::panelImage() has been deprecated and will be removed in Kirby 3.8.0. Use $model->panel()->image() instead.');
+		return $this->panel()->image($settings);
+	}
+
+	/**
+	 * Returns an array of all actions
+	 * that can be performed in the Panel
+	 * This also checks for the lock status
+	 *
+	 * @deprecated 3.6.0 Use `->panel()->options()` instead
+	 * @todo Remove in 3.8.0
+	 *
+	 * @param array $unlock An array of options that will be force-unlocked
+	 * @return array
+	 * @codeCoverageIgnore
+	 */
+	public function panelOptions(array $unlock = []): array
+	{
+		Helpers::deprecated('Cms\ModelWithContent::panelOptions() has been deprecated and will be removed in Kirby 3.8.0. Use $model->panel()->options() instead.');
+		return $this->panel()->options($unlock);
 	}
 }

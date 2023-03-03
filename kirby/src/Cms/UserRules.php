@@ -8,7 +8,6 @@ use Kirby\Exception\LogicException;
 use Kirby\Exception\PermissionException;
 use Kirby\Toolkit\Str;
 use Kirby\Toolkit\V;
-use SensitiveParameter;
 
 /**
  * Validators for all user actions
@@ -84,13 +83,13 @@ class UserRules
 	/**
 	 * Validates if the password can be changed
 	 *
+	 * @param \Kirby\Cms\User $user
+	 * @param string $password
+	 * @return bool
 	 * @throws \Kirby\Exception\PermissionException If the user is not allowed to change the password
 	 */
-	public static function changePassword(
-		User $user,
-		#[SensitiveParameter]
-		string $password
-	): bool {
+	public static function changePassword(User $user, string $password): bool
+	{
 		if ($user->permissions()->changePassword() !== true) {
 			throw new PermissionException([
 				'key'  => 'user.changePassword.permission',
@@ -180,27 +179,26 @@ class UserRules
 		$currentUser = $user->kirby()->user();
 
 		// admins are allowed everything
-		if ($currentUser?->isAdmin() === true) {
+		if ($currentUser && $currentUser->isAdmin() === true) {
 			return true;
 		}
 
 		// only admins are allowed to add admins
 		$role = $props['role'] ?? null;
 
-		if ($role === 'admin' && $currentUser?->isAdmin() === false) {
+		if ($role === 'admin' && $currentUser && $currentUser->isAdmin() === false) {
 			throw new PermissionException([
 				'key' => 'user.create.permission'
 			]);
 		}
 
 		// check user permissions (if not on install)
-		if (
-			$user->kirby()->users()->count() > 0 &&
-			$user->permissions()->create() !== true
-		) {
-			throw new PermissionException([
-				'key' => 'user.create.permission'
-			]);
+		if ($user->kirby()->users()->count() > 0) {
+			if ($user->permissions()->create() !== true) {
+				throw new PermissionException([
+					'key' => 'user.create.permission'
+				]);
+			}
 		}
 
 		return true;
@@ -334,13 +332,13 @@ class UserRules
 	/**
 	 * Validates a password
 	 *
+	 * @param \Kirby\Cms\User $user
+	 * @param string $password
+	 * @return bool
 	 * @throws \Kirby\Exception\InvalidArgumentException If the password is too short
 	 */
-	public static function validPassword(
-		User $user,
-		#[SensitiveParameter]
-		string $password
-	): bool {
+	public static function validPassword(User $user, string $password): bool
+	{
 		if (Str::length($password ?? null) < 8) {
 			throw new InvalidArgumentException([
 				'key' => 'user.password.invalid',
@@ -360,7 +358,7 @@ class UserRules
 	 */
 	public static function validRole(User $user, string $role): bool
 	{
-		if ($user->kirby()->roles()->find($role) instanceof Role) {
+		if (is_a($user->kirby()->roles()->find($role), 'Kirby\Cms\Role') === true) {
 			return true;
 		}
 

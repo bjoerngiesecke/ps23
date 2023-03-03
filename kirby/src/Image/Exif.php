@@ -16,55 +16,75 @@ use Kirby\Toolkit\V;
 class Exif
 {
 	/**
-	 * The parent image object
+	 * the parent image object
+	 * @var \Kirby\Image\Image
 	 */
-	protected Image $image;
+	protected $image;
 
 	/**
-	 * The raw exif array
+	 * the raw exif array
+	 * @var array
 	 */
-	protected array $data = [];
+	protected $data = [];
 
 	/**
-	 * The camera object with model and make
+	 * the camera object with model and make
+	 * @var Camera
 	 */
-	protected Camera|null $camera = null;
+	protected $camera;
 
 	/**
-	 * The location object
+	 * the location object
+	 * @var Location
 	 */
-	protected Location|null $location = null;
+	protected $location;
 
 	/**
-	 * The timestamp
+	 * the timestamp
+	 *
+	 * @var string
 	 */
-	protected string|null $timestamp = null;
+	protected $timestamp;
 
 	/**
-	 * The exposure value
+	 * the exposure value
+	 *
+	 * @var string
 	 */
-	protected string|null $exposure = null;
+	protected $exposure;
 
 	/**
-	 * The aperture value
+	 * the aperture value
+	 *
+	 * @var string
 	 */
-	protected string|null $aperture = null;
+	protected $aperture;
 
 	/**
-	 * ISO value
+	 * iso value
+	 *
+	 * @var string
 	 */
-	protected string|null $iso = null;
+	protected $iso;
 
 	/**
-	 * Focal length
+	 * focal length
+	 *
+	 * @var string
 	 */
-	protected string|null $focalLength = null;
+	protected $focalLength;
 
 	/**
-	 * Color or black/white
+	 * color or black/white
+	 * @var bool
 	 */
-	protected bool|null $isColor = null;
+	protected $isColor;
 
+	/**
+	 * Constructor
+	 *
+	 * @param \Kirby\Image\Image $image
+	 */
 	public function __construct(Image $image)
 	{
 		$this->image = $image;
@@ -74,6 +94,8 @@ class Exif
 
 	/**
 	 * Returns the raw data array from the parser
+	 *
+	 * @return array
 	 */
 	public function data(): array
 	{
@@ -82,8 +104,10 @@ class Exif
 
 	/**
 	 * Returns the Camera object
+	 *
+	 * @return \Kirby\Image\Camera|null
 	 */
-	public function camera(): Camera
+	public function camera()
 	{
 		if ($this->camera !== null) {
 			return $this->camera;
@@ -94,8 +118,10 @@ class Exif
 
 	/**
 	 * Returns the location object
+	 *
+	 * @return \Kirby\Image\Location|null
 	 */
-	public function location(): Location
+	public function location()
 	{
 		if ($this->location !== null) {
 			return $this->location;
@@ -106,62 +132,78 @@ class Exif
 
 	/**
 	 * Returns the timestamp
+	 *
+	 * @return string|null
 	 */
-	public function timestamp(): string|null
+	public function timestamp()
 	{
 		return $this->timestamp;
 	}
 
 	/**
 	 * Returns the exposure
+	 *
+	 * @return string|null
 	 */
-	public function exposure(): string|null
+	public function exposure()
 	{
 		return $this->exposure;
 	}
 
 	/**
 	 * Returns the aperture
+	 *
+	 * @return string|null
 	 */
-	public function aperture(): string|null
+	public function aperture()
 	{
 		return $this->aperture;
 	}
 
 	/**
 	 * Returns the iso value
+	 *
+	 * @return int|null
 	 */
-	public function iso(): string|null
+	public function iso()
 	{
 		return $this->iso;
 	}
 
 	/**
 	 * Checks if this is a color picture
+	 *
+	 * @return bool|null
 	 */
-	public function isColor(): bool|null
+	public function isColor()
 	{
 		return $this->isColor;
 	}
 
 	/**
 	 * Checks if this is a bw picture
+	 *
+	 * @return bool|null
 	 */
-	public function isBW(): bool|null
+	public function isBW(): ?bool
 	{
 		return ($this->isColor !== null) ? $this->isColor === false : null;
 	}
 
 	/**
 	 * Returns the focal length
+	 *
+	 * @return string|null
 	 */
-	public function focalLength(): string|null
+	public function focalLength()
 	{
 		return $this->focalLength;
 	}
 
 	/**
 	 * Read the exif data of the image object if possible
+	 *
+	 * @return mixed
 	 */
 	protected function read(): array
 	{
@@ -177,6 +219,8 @@ class Exif
 
 	/**
 	 * Get all computed data
+	 *
+	 * @return array
 	 */
 	protected function computed(): array
 	{
@@ -184,9 +228,9 @@ class Exif
 	}
 
 	/**
-	 * Parses and stores all relevant exif data
+	 * Pareses and stores all relevant exif data
 	 */
-	protected function parse(): void
+	protected function parse()
 	{
 		$this->timestamp   = $this->parseTimestamp();
 		$this->exposure    = $this->data['ExposureTime'] ?? null;
@@ -198,13 +242,13 @@ class Exif
 
 	/**
 	 * Return the timestamp when the picture has been taken
+	 *
+	 * @return string|int
 	 */
-	protected function parseTimestamp(): string
+	protected function parseTimestamp()
 	{
 		if (isset($this->data['DateTimeOriginal']) === true) {
-			if ($time = strtotime($this->data['DateTimeOriginal'])) {
-				return (string)$time;
-			}
+			return strtotime($this->data['DateTimeOriginal']);
 		}
 
 		return $this->data['FileDateTime'] ?? $this->image->modified();
@@ -212,23 +256,24 @@ class Exif
 
 	/**
 	 * Return the focal length
+	 *
+	 * @return string|null
 	 */
-	protected function parseFocalLength(): string|null
+	protected function parseFocalLength()
 	{
-		return
-			$this->data['FocalLength'] ??
-			$this->data['FocalLengthIn35mmFilm'] ??
-			null;
+		return $this->data['FocalLength'] ?? $this->data['FocalLengthIn35mmFilm'] ?? null;
 	}
 
 	/**
 	 * Converts the object into a nicely readable array
+	 *
+	 * @return array
 	 */
 	public function toArray(): array
 	{
 		return [
-			'camera'      => $this->camera()->toArray(),
-			'location'    => $this->location()->toArray(),
+			'camera'      => $this->camera() ? $this->camera()->toArray() : null,
+			'location'    => $this->location() ? $this->location()->toArray() : null,
 			'timestamp'   => $this->timestamp(),
 			'exposure'    => $this->exposure(),
 			'aperture'    => $this->aperture(),
@@ -240,6 +285,8 @@ class Exif
 
 	/**
 	 * Improved `var_dump` output
+	 *
+	 * @return array
 	 */
 	public function __debugInfo(): array
 	{

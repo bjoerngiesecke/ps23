@@ -1,0 +1,25 @@
+Worktype: 
+
+----
+
+Imagetype: 
+
+----
+
+Materials: Marblecast, Cement, Epoxy Resin, PVC Pipe, Wood Residue
+
+----
+
+Collaborators: 
+
+----
+
+Filetype: img
+
+----
+
+Keywords: Sculpture
+
+----
+
+Sort: 1

@@ -19,16 +19,23 @@ class View
 {
 	/**
 	 * The absolute path to the view file
+	 *
+	 * @var string
 	 */
-	protected string $file;
+	protected $file;
 
 	/**
 	 * The view data
+	 *
+	 * @var array
 	 */
-	protected array $data = [];
+	protected $data = [];
 
 	/**
 	 * Creates a new view object
+	 *
+	 * @param string $file
+	 * @param array $data
 	 */
 	public function __construct(string $file, array $data = [])
 	{
@@ -39,6 +46,8 @@ class View
 	/**
 	 * Returns the view's data array
 	 * without globals.
+	 *
+	 * @return array
 	 */
 	public function data(): array
 	{
@@ -47,6 +56,8 @@ class View
 
 	/**
 	 * Checks if the template file exists
+	 *
+	 * @return bool
 	 */
 	public function exists(): bool
 	{
@@ -55,14 +66,18 @@ class View
 
 	/**
 	 * Returns the view file
+	 *
+	 * @return string|false
 	 */
-	public function file(): string
+	public function file()
 	{
 		return $this->file;
 	}
 
 	/**
 	 * Creates an error message for the missing view exception
+	 *
+	 * @return string
 	 */
 	protected function missingViewMessage(): string
 	{
@@ -71,6 +86,8 @@ class View
 
 	/**
 	 * Renders the view
+	 *
+	 * @return string
 	 */
 	public function render(): string
 	{
@@ -98,7 +115,9 @@ class View
 	}
 
 	/**
-	 * @see ::render()
+	 * Alias for View::render()
+	 *
+	 * @return string
 	 */
 	public function toString(): string
 	{
@@ -108,6 +127,8 @@ class View
 	/**
 	 * Magic string converter to enable
 	 * converting view objects to string
+	 *
+	 * @return string
 	 */
 	public function __toString(): string
 	{
