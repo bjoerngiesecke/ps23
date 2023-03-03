@@ -1,0 +1,17 @@
+* {
+	box-sizing: border-box;
+}
+
+body {
+	background-color: hsla(0,0%,94.9%,.9);
+}
+
+p, ul, li {
+	font-family: Helvetica, sans-serif;
+	font-size: 20px;
+	/* background-color: greenyellow; */
+}
+
+a:hover {
+	text-decoration: underline;
+}
